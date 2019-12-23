@@ -5,14 +5,15 @@ class Connector {
   Node startNode, endNode, closestNode;
   //boolean drawing = false;    // is the connector currently being drawn?
   float dist;
-  float springLength = 160;
+  float springLength = 130;
+  float springStrength = 0.002;
 
-  Connector(Vec2D p1, Vec2D p2) { //add extra two PVector positions if using bezier
+  Connector(VerletParticle2D p1, VerletParticle2D p2) { //add extra two PVector positions if using bezier
     curveBegin = p1;
     anchor1 = p2;    // where the curve start should be next
   }
 
-  Node findClosestNode(ArrayList<Node> candidates, Vec2D anchor) {    // finds closest node to connector end(s)
+  Node findClosestNode(ArrayList<Node> candidates, VerletParticle2D anchor) {    // finds closest node to connector end(s)
     float minDist = width*height;
     for (int i = 0; i < candidates.size(); i++) {
       dist = sqrt(sq(candidates.get(i).x - anchor.x) + sq(candidates.get(i).y - anchor.y));
@@ -35,16 +36,16 @@ class Connector {
     //    }
   }
 
-  void setEndpoint(Vec2D p3, Vec2D p4) {
+  void setEndpoint(VerletParticle2D p3, VerletParticle2D p4) {
     anchor2 = p3;    // where the curve end point should be next
     curveEnd = p4;
   }
 
   void connect(VerletParticle2D n1, VerletParticle2D n2) { // add a spring between two connected nodes
     //springLength = dist*12;    // length at equilibrium
-    print(springLength);
+    //print(springLength);
     if (curveBegin != curveEnd) {
-      physics.addSpring(new VerletSpring2D(n1, n2, springLength, 0.005));
+      physics.addSpring(new VerletSpring2D(n1, n2, springLength, springStrength));
     }
   }
 

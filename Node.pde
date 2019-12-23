@@ -4,7 +4,7 @@ HandyRenderer HR;
 class Node extends VerletParticle2D {
 
   boolean sketchy = false;
-  float w, h, radius, strength = 0.6; //0.2;
+  float w, h, radius, strength = 1.3; //0.2;
   boolean selected = false, highlighted = false;
   Vec2D displacement, velocity, acceleration; // initialised from draw screen origin (0,0)
 

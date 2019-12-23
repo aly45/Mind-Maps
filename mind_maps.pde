@@ -22,7 +22,7 @@ void setup() {
   //surface.setLocation(100, 100); // location on device screen
 
   physics = new VerletPhysics2D();
-  physics.setDrag (0.02); //0.05  
+  physics.setDrag (0.015); //0.05  
 
   nodes = new ArrayList<Node>();
   connectors = new ArrayList<Connector>();
@@ -90,27 +90,29 @@ void mouseReleased() {
     }
   }
 
-  if (mouseButton == RIGHT) {
+  if ((mouseButton == RIGHT)&&(nodes.size()>0)) {
     xAnchor = mouseX;
     yAnchor = mouseY;
     //if (nodeSelected) {
     if (!drawing) {
       drawing = true;
-      connectors.add(new Connector(new Vec2D(xAnchor, yAnchor), new Vec2D(xAnchor, yAnchor)));    // ADD a new CONNECTOR
-      startNode = connectors.get(connectors.size()-1).findClosestNode(nodes, new Vec2D(xAnchor, yAnchor));       // find closest node
-      xAnchor = startNode.x;
-      yAnchor = startNode.y;      
-      connectors.set(connectors.size()-1, new Connector(new Vec2D(xAnchor, yAnchor), new Vec2D(xAnchor, yAnchor)));  // set closest node as new starting node (for this connection)      
+      connectors.add(new Connector(new VerletParticle2D(xAnchor, yAnchor), new VerletParticle2D(xAnchor, yAnchor)));    // ADD a new CONNECTOR
+      startNode = connectors.get(connectors.size()-1).findClosestNode(nodes, new VerletParticle2D(xAnchor, yAnchor));       // find closest node 
+      connectors.set(connectors.size()-1, new Connector(startNode, startNode));  // set closest node as new starting node (for this connection)      
     } else {
       drawing = false;
-      endNode = connectors.get(connectors.size()-1).findClosestNode(nodes, new Vec2D(xAnchor, yAnchor));       // find closest node
-      xAnchor = connectors.get(connectors.size()-1).closestNode.x;
-      yAnchor = connectors.get(connectors.size()-1).closestNode.y;
-      connectors.get(connectors.size()-1).setEndpoint(new Vec2D(xAnchor, yAnchor), new Vec2D(xAnchor, yAnchor));     // set closest node as end node (for this connection)
+      endNode = connectors.get(connectors.size()-1).findClosestNode(nodes, new VerletParticle2D(xAnchor, yAnchor));       // find closest node
+      connectors.get(connectors.size()-1).setEndpoint(endNode, endNode);          // set closest node as end node (for this connection)
       connectors.get(connectors.size()-1).connect(startNode, endNode);            // connect the nodes together with a verletSpring
+      Connector c = connectors.get(connectors.size()-1);
+      
+      for (int i = connectors.size() - 2; i >= 0; i--){                           // this loop removes duplicate connectors, but it doesn't work
+        if ((connectors.get(i).curveBegin == c.curveBegin)&&(connectors.get(i).curveEnd == c.curveEnd)){
+          connectors.remove(i);
+          println("DELEEETE!");
+        }
+      }
     }
-
-    //println(connectors.size());
   }
 }
 //}
