@@ -1,4 +1,3 @@
-// Read about force-directed graphs: https://natureofcode.com/book/chapter-5-physics-libraries/#chapter05_section18
 import toxi.geom.*;
 import toxi.physics2d.*;
 import toxi.physics2d.behaviors.*;
@@ -8,35 +7,41 @@ VerletPhysics2D physics;
 
 ArrayList<Node> nodes;  //array list of nodes
 ArrayList<Connector> connectors;  //array list of connectors (arrows/lines)
-PVector mouse, lastnode, draggedline;//lastline;
+//Vec2D mouse, lastnode, draggedline;//lastline;
 boolean sketchy = false;
 float rectW = 80, rectH = 40;
+float xAnchor, yAnchor;
 String MODE = "PLACING_NODES"; // "NODE_SELECTED";
-boolean overNode = false, nodeSelected = false;
-Node selectedNode, draggedNode;
+boolean overNode = false, nodeSelected = false, drawing = false;
+Node selectedNode, draggedNode, startNode, endNode;
 
 void setup() {
   size(600, 400);
   surface.setTitle("Mind Maps");
   surface.setResizable(true);
-  surface.setLocation(100, 100);
+  //surface.setLocation(100, 100); // location on device screen
 
   physics = new VerletPhysics2D();
-  physics.setWorldBounds(new Rect(0, 0, width, height));
-  physics.setDrag (0.05); //0.05
+  physics.setDrag (0.02); //0.05  
 
   nodes = new ArrayList<Node>();
   connectors = new ArrayList<Connector>();
 
-  lastnode = new PVector(0, 0);
-  draggedline = new PVector(0, 0);
+  //lastnode = new Vec2D(0, 0);
+  //draggedline = new Vec2D(0, 0);
 }
 
 void draw() {
+  physics.setWorldBounds(new Rect(0, 0, width, height));
   background(200); //10, 17, 60);
   physics.update ();
 
-  mouse = new PVector(mouseX, mouseY);
+  //mouse = new Vec2D(mouseX, mouseY);
+
+  if (drawing) {
+    stroke(0);
+    line(xAnchor, yAnchor, mouseX, mouseY);
+  }
 
   if (nodes.size() > 0) {
     overNode = nodes.get(0).mouseOver(nodes.get(0).x, nodes.get(0).y, rectW, rectH);
@@ -44,8 +49,8 @@ void draw() {
   for (int i = 0; i < nodes.size(); i++) {    // goes through all the nodes
     overNode = overNode||(nodes.get(i).mouseOver(nodes.get(i).x, nodes.get(i).y, rectW, rectH));    // update global variable overNode
     nodes.get(i).addText(nodes.get(i).selected);     // add text to selected node
-    
-    if ((mousePressed)&&(nodes.get(i).selected)) {
+
+    if ((mousePressed)&&(mouseButton == LEFT)&&(nodes.get(i).mouseOver(nodes.get(i).x, nodes.get(i).y, rectW, rectH))) {
       nodes.get(i).lock();
       nodes.get(i).set(mouseX, mouseY);
     } else {
@@ -53,28 +58,24 @@ void draw() {
     }
   }
 
-  for (Node n : nodes) {  // for every node in the arrayList nodes,
-    n.display();          // display the node
-  }
-
   for (Connector c : connectors) {  // for every connector in the arrayList connectors,
     c.display();         // display the connector
   }
 
-  println(overNode);
+  for (Node n : nodes) {  // for every node in the arrayList nodes,
+    n.display();          // display the node
+  }
+  //println(overNode);
 }
 
 void mouseReleased() {
   if (mouseButton == LEFT) {
-    println(nodes.size());
+    //println(nodes.size());
     if (!overNode) {
       //MODE = "PLACING_NODES";
       nodeSelected = false;
       //lastnode.set(mouseX, mouseY);
       nodes.add(new Node(new Vec2D(mouseX, mouseY), rectW, rectH, this));    // ADD a new NODE
-      //      lastnode = nodes.get(nodes.size()-1);
-      //      physics.addParticle(l);
-      println(nodes.size());
     } else {
       for (Node n : nodes) {
         if (n.mouseOver(n.x, n.y, rectW, rectH)) {    // mouse is L-clicked on a node
@@ -90,13 +91,29 @@ void mouseReleased() {
   }
 
   if (mouseButton == RIGHT) {
-    if (nodeSelected) {
-      //      VerletSpring2D spring = new VerletSpring2D(p1, p2, 160, 0.001);
-      draggedline = mouse.sub(lastnode);  // difference between centre of last node and current mouse position
-      connectors.add(new Connector(lastnode, lastnode, draggedline, draggedline));
+    xAnchor = mouseX;
+    yAnchor = mouseY;
+    //if (nodeSelected) {
+    if (!drawing) {
+      drawing = true;
+      connectors.add(new Connector(new Vec2D(xAnchor, yAnchor), new Vec2D(xAnchor, yAnchor)));    // ADD a new CONNECTOR
+      startNode = connectors.get(connectors.size()-1).findClosestNode(nodes, new Vec2D(xAnchor, yAnchor));       // find closest node
+      xAnchor = startNode.x;
+      yAnchor = startNode.y;      
+      connectors.set(connectors.size()-1, new Connector(new Vec2D(xAnchor, yAnchor), new Vec2D(xAnchor, yAnchor)));  // set closest node as new starting node (for this connection)      
+    } else {
+      drawing = false;
+      endNode = connectors.get(connectors.size()-1).findClosestNode(nodes, new Vec2D(xAnchor, yAnchor));       // find closest node
+      xAnchor = connectors.get(connectors.size()-1).closestNode.x;
+      yAnchor = connectors.get(connectors.size()-1).closestNode.y;
+      connectors.get(connectors.size()-1).setEndpoint(new Vec2D(xAnchor, yAnchor), new Vec2D(xAnchor, yAnchor));     // set closest node as end node (for this connection)
+      connectors.get(connectors.size()-1).connect(startNode, endNode);            // connect the nodes together with a verletSpring
     }
+
+    //println(connectors.size());
   }
 }
+//}
 
 void keyPressed() {
   if (key == BACKSPACE) {
@@ -106,16 +123,3 @@ void keyPressed() {
     }
   }
 }
-
-//void mouseDragged() {
-//  if (nodeSelected) {
-//    selectedNode.set(mouseX, mouseY);
-//  }
-//}
-
-//void mouseDragged(){
-//  println(draggedline);
-//  draggedline = mouse.sub(lastnode);  // difference between centre of last node and current mouse position
-//  println(draggedline);
-//  connectors.add(new Connector(lastnode, draggedline));
-//}
