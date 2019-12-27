@@ -24,16 +24,7 @@ class Connector {
         //}
       }
     }
-    return closestNode;
-    //println(closestNode);
-
-    //    if (!drawing) {
-    //      drawing = true;
-    //      startNode = closestNode;
-    //    } else {
-    //      drawing = false;
-    //      endNode = closestNode;
-    //    }
+    return closestNode;  // should check for closestNode == null
   }
 
   void setEndpoint(VerletParticle2D p3, VerletParticle2D p4) {
