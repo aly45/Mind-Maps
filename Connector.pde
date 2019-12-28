@@ -38,7 +38,7 @@ class Connector {
     //println(n);
     return closestNode;  // should check for closestNode == null (if limiting minDist to some radius)
   }
-  
+
   int getClosestIndex(ArrayList<Node> candidates, VerletParticle2D anchor) {    // returns closest node index. No idea why cloestNode is always 0 if I try to extract it without using this function.
     float minDist = width*height;
     for (int i = candidates.size()-1; i >= 0; i--) {
@@ -70,8 +70,16 @@ class Connector {
   }
 
   void connect(VerletParticle2D n1, VerletParticle2D n2) { // add a spring between two connected nodes
-    //springLength = dist*12;    // length at equilibrium
-    //print(springLength);
+    float nodesDist = sqrt(sq(n1.x - n2.x) + sq(n1.y - n2.y));
+    //springLength = nodesDist;    // length at equilibrium
+    //println(nodesDist);
+    //nodesDist - 10
+    if (curveBegin != curveEnd) {
+      physics.addSpring(new VerletSpring2D(n1, n2, springLength, springStrength)); //shouldn't sub/add to nodesDist unless adding a new connection by mouse click
+    }
+  }
+
+  void connect(VerletParticle2D n1, VerletParticle2D n2, float tempLength) { // add a spring between two connected nodes
     if (curveBegin != curveEnd) {
       physics.addSpring(new VerletSpring2D(n1, n2, springLength, springStrength));
     }
@@ -79,6 +87,7 @@ class Connector {
 
   void display() {
     stroke(0);
+    strokeWeight(2);
     if ((curveBegin != null)&&(curveEnd != null)) {  // checks if curveBegin and curveEnd are actually assigned.
       if (curveBegin != curveEnd) {
         bezier(curveBegin.x, curveBegin.y, anchor1.x, anchor1.y, anchor2.x, anchor2.y, curveEnd.x, curveEnd.y);

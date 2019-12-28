@@ -71,11 +71,13 @@ class Node extends VerletParticle2D {
       }
     }
 
-    if (letters.size()>0) {
+    
       words = "";
       for (int i=0; i<letters.size(); i+=1) {  // build up words String out of letters StringList
         words += letters.get(i);
       }
+      
+      if (letters.size()>0) {
 
       w = textWidth(words) + 5;    // resizes width of node and text area
 
@@ -105,8 +107,8 @@ class Node extends VerletParticle2D {
 
 
   boolean mouseOver(float tempx, float tempy) {
-    if ((mouseX >= tempx - w/2)&&(mouseX <= tempx + w/2) && 
-      (mouseY >= tempy - h/2)&&(mouseY <= tempy + h/2)) {
+    if ((pmouseX >= tempx - w/2)&&(pmouseX <= tempx + w/2) && 
+      (pmouseY >= tempy - h/2)&&(pmouseY <= tempy + h/2)) {
       highlighted = true;
       return true;
     } else {

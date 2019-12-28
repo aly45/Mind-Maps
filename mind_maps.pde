@@ -8,11 +8,11 @@ VerletPhysics2D physics;
 Table nodeData = new Table(), connectorData = new Table();
 ArrayList<Node> nodes;  //array list of nodes
 ArrayList<Connector> connectors;  //array list of connectors (arrows/lines)
-//Vec2D mouse, lastnode, draggedline;//lastline;
+Vec2D mouse;//, lastnode, draggedline;//lastline;
 float rectW = 70, rectH = 30;
 float xAnchor, yAnchor;
 String MODE = "PLACING_NODES"; // "NODE_SELECTED";
-boolean overNode = false, nodeSelected = false, nodeMoved = false, drawing = false, sketchy = false, textLoaded = false;
+boolean overNode = false, nodeSelected = false, nodeMoved = false, drawing = false, sketchy = false, textLoaded = false, dragging = false;
 Node selectedNode, someNode, startNode, endNode;
 int sn, en;//startNodeIndex, endNodeIndex;
 
@@ -34,6 +34,7 @@ void setup() {
   nodeData.addColumn("h");
   nodeData.addColumn("text");
 
+  connectorData.addColumn("# row number");
   connectorData.addColumn("starting node index");    // adds columns to table connectorData
   connectorData.addColumn("ending node index");
   connectorData.clearRows();                           // resets table
@@ -48,8 +49,6 @@ void setup() {
   //for (int i = 0; i < nodes.size(); i++) {
   //  nodes.get(i).addText(nodes.get(i).selected);  // Not sure why this doesn't work. Need to run it once in draw() for some reason.
   //}
-
-  println(nodes.size());
 }
 
 void draw() {
@@ -65,7 +64,7 @@ void draw() {
     exit();
   }
 
-  //mouse = new Vec2D(mouseX, mouseY);
+  mouse = new Vec2D(mouseX, mouseY);
 
   if (drawing) {
     stroke(0);
@@ -99,69 +98,75 @@ void draw() {
   //println(overNode);
 }
 
+//void MouseDragged() {    // MouseDragged/Moved can't be called. Why?
+//  dragging = true;
+//  println("Dragging!");
+//}
+
+//void MouseMoved() {
+//  dragging = false;
+//  println("Moving!");
+//}
+
 void mouseReleased() {
-  if (mouseButton == LEFT) {
-    //println(nodes.size());
-    if (!overNode) {
-      //MODE = "PLACING_NODES";
-      nodeSelected = false;
-      //lastnode.set(mouseX, mouseY);
-      nodes.add(new Node(new Vec2D(mouseX, mouseY), rectW, rectH, this));    // ADD a new NODE
-    } else {
-      nodeSelected = false;
-      for (Node n : nodes) {
-        if (n.mouseOver(n.x, n.y)) {    // mouse is L-clicked on a node
-          //MODE = "NODE_SELECTED";
-          n.selected = !n.selected; //true;
-          nodeSelected = nodeSelected||(n.selected);
-          //nodeSelected = true;   // should rewrite ... to only select if the node hasn't been dragged.
-          selectedNode = n;
-        } else {
-          n.selected = false;
+  if ((mouseX==pmouseX)&&(mouseY==pmouseY)) { // stay still!
+    if (mouseButton == LEFT) {
+      //println(nodes.size());
+      if (!overNode) {
+        //MODE = "PLACING_NODES";
+        nodeSelected = false;
+        nodes.add(new Node(mouse, rectW, rectH, this));    // ADD a new NODE    //edited this to use mouse Vec2D
+      } else {
+        nodeSelected = false;
+        for (Node n : nodes) {
+          if (n.mouseOver(n.x, n.y)) {    // mouse is L-clicked on a node
+            //MODE = "NODE_SELECTED";
+            n.selected = !n.selected; //true;
+            nodeSelected = nodeSelected||(n.selected);
+            //nodeSelected = true;   // should rewrite ... to only select if the node hasn't been dragged.
+            selectedNode = n;
+          } else {
+            n.selected = false;
+          }
         }
       }
     }
     //println(nodeSelected);
-  }
 
-  if ((mouseButton == RIGHT)&&(nodes.size()>0)) {
-    xAnchor = mouseX;
-    yAnchor = mouseY;
-    TableRow row = connectorData.addRow();
+    if ((mouseButton == RIGHT)&&(nodes.size()>0)) {
+      xAnchor = mouseX;
+      yAnchor = mouseY;
+      TableRow row = connectorData.addRow();
 
 
-    if (!drawing) {
-      drawing = true;
-      connectors.add(new Connector(new VerletParticle2D(xAnchor, yAnchor), new VerletParticle2D(xAnchor, yAnchor)));    // ADD a new CONNECTOR
-      startNode = connectors.get(connectors.size()-1).findClosestNode(nodes, new VerletParticle2D(xAnchor, yAnchor));       // find closest node 
-      connectors.get(connectors.size()-1).startNodeIndex = connectors.get(connectors.size()-1).getClosestIndex(nodes, new VerletParticle2D(xAnchor, yAnchor));       // return closest node index
-      sn = connectors.get(connectors.size()-1).startNodeIndex;
-      row = connectorData.getRow(connectors.size()-1);
-      row.setInt("starting node index", connectors.get(connectors.size()-1).startNodeIndex);
-      println("Start node index is " + connectors.get(connectors.size()-1).startNodeIndex);
-      connectors.set(connectors.size()-1, new Connector(startNode, startNode));  // set closest node as new starting node (for this connection)
-    } else {
-      row = connectorData.getRow(connectors.size()-1);
-      drawing = false;
-      endNode = connectors.get(connectors.size()-1).findClosestNode(nodes, new VerletParticle2D(xAnchor, yAnchor));       // find closest node
-      connectors.get(connectors.size()-1).endNodeIndex = connectors.get(connectors.size()-1).getClosestIndex(nodes, new VerletParticle2D(xAnchor, yAnchor));       // return closest node index
-      en = connectors.get(connectors.size()-1).endNodeIndex;
-      row.setInt("ending node index", connectors.get(connectors.size()-1).endNodeIndex);
-      println("End node index is " + connectors.get(connectors.size()-1).endNodeIndex);
-      connectors.get(connectors.size()-1).setEndpoint(endNode, endNode);          // set closest node as end node (for this connection)
-      connectors.get(connectors.size()-1).connect(startNode, endNode);            // connect the nodes together with a verletSpring
-      Connector c = connectors.get(connectors.size()-1);
+      if (!drawing) {
+        drawing = true;
+        connectors.add(new Connector(new VerletParticle2D(xAnchor, yAnchor), new VerletParticle2D(xAnchor, yAnchor)));    // ADD a new CONNECTOR
+        startNode = connectors.get(connectors.size()-1).findClosestNode(nodes, new VerletParticle2D(xAnchor, yAnchor));       // find closest node 
+        connectors.get(connectors.size()-1).startNodeIndex = connectors.get(connectors.size()-1).getClosestIndex(nodes, new VerletParticle2D(xAnchor, yAnchor));       // return closest node index
+        sn = connectors.get(connectors.size()-1).startNodeIndex;
+        row = connectorData.getRow(connectors.size()-1);
+        row.setInt("starting node index", connectors.get(connectors.size()-1).startNodeIndex);
+        println("Start node index is " + connectors.get(connectors.size()-1).startNodeIndex);
+        connectors.set(connectors.size()-1, new Connector(startNode, startNode));  // set closest node as new starting node (for this connection)
+      } else {
+        row = connectorData.getRow(connectors.size()-1);
+        drawing = false;
+        endNode = connectors.get(connectors.size()-1).findClosestNode(nodes, new VerletParticle2D(xAnchor, yAnchor));       // find closest node
+        connectors.get(connectors.size()-1).endNodeIndex = connectors.get(connectors.size()-1).getClosestIndex(nodes, new VerletParticle2D(xAnchor, yAnchor));       // return closest node index
+        en = connectors.get(connectors.size()-1).endNodeIndex;
+        row.setInt("ending node index", connectors.get(connectors.size()-1).endNodeIndex);
+        println("End node index is " + connectors.get(connectors.size()-1).endNodeIndex);
+        connectors.get(connectors.size()-1).setEndpoint(endNode, endNode);          // set closest node as end node (for this connection)
+        connectors.get(connectors.size()-1).connect(startNode, endNode);            // connect the nodes together with a verletSpring
+        Connector c = connectors.get(connectors.size()-1);
 
-      //en = connectors.get(connectors.size()-1).x;
-
-      //println("starting node: " + sn);    
-      //println("ending node: " + en);
-
-      if (connectors.size()>1) {
-        for (int i = connectors.size() - 2; i >= 0; i--) {                           // this loop removes duplicate connectors, but it doesn't quite work...
-          if ((connectors.get(i).curveBegin == c.curveBegin)&&(connectors.get(i).curveEnd == c.curveEnd)) {
-            connectors.remove(i);
-            //println("DELETING A CONNECTOR");
+        if (connectors.size()>1) {
+          for (int i = connectors.size() - 2; i >= 0; i--) {                           // this loop removes duplicate connectors, but it doesn't quite work...
+            if ((connectors.get(i).curveBegin == c.curveBegin)&&(connectors.get(i).curveEnd == c.curveEnd)) {
+              connectors.remove(i);
+              //println("DELETING A CONNECTOR");
+            }
           }
         }
       }
@@ -192,12 +197,6 @@ void keyPressed() {
   //}
 }
 
-//void MouseDragged() {
-//}
-
-//void MouseMoved() {
-//}
-
 void saveData(String filename) {
   nodeData.clearRows();                      // resets table
   for (int i = 0; i < nodes.size(); i++) {   // fills rows of table
@@ -210,10 +209,10 @@ void saveData(String filename) {
   }
   saveTable(nodeData, filename + "/nodeData.csv");
 
-  //connectorData.clearRows();                           // resets table
+  //connectorData.clearRows();                         // resets table
   for (int i = 0; i < connectors.size(); i++) {        // fills rows of table
-    //  TableRow row = connectorData.addRow();
-    //  row.setInt("starting node index", connectors.get(i).startNodeIndex);
+    TableRow row = connectorData.getRow(i);
+    row.setString("# row number", "#" + i+1);        // this is almost useless atm...
     //println("starting nodes....." + connectors.get(i).startNodeIndex);
     //  row.setInt("ending node index", connectors.get(i).endNodeIndex);
     //println("ending nodes....." + connectors.get(i).endNodeIndex);
@@ -222,55 +221,60 @@ void saveData(String filename) {
 }
 
 void loadData(String filename) {
+
+  // LOAD NODES
   nodes.clear();             // clear the nodes ArrayList
   nodeData = loadTable(filename + "/nodeData.csv", "header");
   //connectorData = loadTable(filename + "/connectorData.csv", "header");
 
   for (int i = 0; i<nodeData.getRowCount(); i++) {
-    // Iterate over all the rows in table rowData.
+    // Iterate over all the rows in table rowData
     TableRow row = nodeData.getRow(i);
 
-    // Access the fields via their column name (or index).
+    // Access the fields via their column name (or index)
     float x = row.getFloat("x");
     float y = row.getFloat("y");
     float w = row.getFloat("w");
     float h = row.getFloat("w");
     String t = row.getString("words");
 
+    // Turn each row into a node
     if (x > 0) { // this makes sure blank rows aren't being turned into nodes (checks validity of x position)
-      // turn each row into a node
       nodes.add(new Node(new Vec2D(x, y), w, h, this));    // ADD a new NODE
       for (int c = 0; c < t.length(); c++) {
         nodes.get(i).letters.append(str(t.charAt(c)));      // fills the letters ArrayList
       }
     }
   }
-  
-  //connectors.clear();             // clear the connectors ArrayList
-  //connectorData = loadTable(filename + "/connectorData.csv", "header");
+  println("Loaded " + nodes.size() + " nodes.");
 
-  //for (int i = 0; i<connectorData.getRowCount(); i++) {
-  //  // Iterate over all the rows in table connectorData.
-  //  TableRow row = nodeData.getRow(i);
+  // LOAD CONNECTORS
+  connectors.clear();             // clear the connectors ArrayList
+  connectorData = loadTable(filename + "/connectorData.csv", "header");
 
-  //  // Access the fields via their column name (or index).
-  //  float x = row.getFloat("x");
-  //  float y = row.getFloat("y");
-  //  float w = row.getFloat("w");
-  //  float h = row.getFloat("w");
-  //  String t = row.getString("words");
+  for (int i = 0; i<connectorData.getRowCount(); i++) {
+    // Iterate over all the rows in table connectorData
+    TableRow row = connectorData.getRow(i);
 
-  //  if (x > 0) { // this makes sure blank rows aren't being turned into nodes (checks validity of x position)
-  //    // turn each row into a node
-  //    nodes.add(new Node(new Vec2D(x, y), w, h, this));    // ADD a new NODE
-  //    //String nodeText = "";
-  //    for (int c = 0; c < t.length(); c++) {
-  //      nodes.get(i).letters.append(str(t.charAt(c)));      // fills the letters ArrayList
-  //      //println(" letters attempt: " + nodes.get(i).letters);
-  //    }
-  //  }
+    // Access the fields via their column name (or index)
+    //String rowNum = row.getString("# row number");
+    int sni = row.getInt("starting node index");
+    int eni = row.getInt("ending node index");
+
+    // Turn each row into a connector
+    if (sni != eni) {    // a node can't be connected to itself
+      //if (rowNum.charAt(0) == '#') { // this makes sure blank rows aren't being turned into connectors (checks validity of start node index. EDIT: checks if row number starts with #). EDIT: I can't get this to work...
+      connectors.add(new Connector(nodes.get(sni), nodes.get(sni)));    // ADD a new CONNECTOR
+      connectors.get(connectors.size()-1).setEndpoint(nodes.get(eni), nodes.get(eni));          // set closest node as end node (for this connection)
+      connectors.get(connectors.size()-1).connect(nodes.get(sni), nodes.get(eni));              // connect the nodes together with a verletSpring
+    }
+  }
+  //if (row){
+  ////for (TableRow row: connectorData.findRows("1",0)){
+  //  println(row.getRow("starting node index"));
   //}
-  
+  println("Loaded " + connectors.size() + " connectors.");
+  // Could also set the node locations back to what they are in nodeData.csv if I wanted them to be exactly the same as what was saved
 }
 
 
