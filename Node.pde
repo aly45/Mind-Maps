@@ -3,7 +3,7 @@ HandyRenderer HR;
 
 class Node extends VerletParticle2D {
   boolean sketchy = false;
-  float fontSize = 20, vertSpace = 20, w, h, maxWidth = 120, radius, strength = 2; //0.2;
+  float fontSize = 20, vertSpace = 20, w = 70, h = 30, maxWidth = 120, radius, strength = 2; //0.2;
   boolean selected = false, highlighted = false, wrapped = false;
   Vec2D displacement, velocity, acceleration; // initialised from draw screen origin (0,0)
   StringList letters = new StringList();
@@ -48,9 +48,6 @@ class Node extends VerletParticle2D {
     textSize(fontSize);
     textLeading(vertSpace);
     text(words, x, y, w, h);  // display typed text on rectangle location
-    //if (keyPressed){
-    //  println(letters);
-    //}
   }
 
   void sketch(boolean selected) {
@@ -72,7 +69,9 @@ class Node extends VerletParticle2D {
         letters.append(str(key)); 
         k += 1;
       }
+    }
 
+    if (letters.size()>0) {
       words = "";
       for (int i=0; i<letters.size(); i+=1) {  // build up words String out of letters StringList
         words += letters.get(i);
@@ -91,7 +90,6 @@ class Node extends VerletParticle2D {
           }
           lastIndex = n;
         }
-        println(numNewlines);
       }
       //} else if  ((w > maxWidth)&&(words.contains(" "))&&(!wrapped)) {    // wrap text in first line with any spaces
       //  wrapped = true;
@@ -99,8 +97,12 @@ class Node extends VerletParticle2D {
       //  w = maxWidth + 5;
       //}
       h += numNewlines*(fontSize);    // resizes height of node and text area
-    }
+    } else {
+      w = 70;
+      h = 30;
+    }    
   }
+
 
   boolean mouseOver(float tempx, float tempy) {
     if ((mouseX >= tempx - w/2)&&(mouseX <= tempx + w/2) && 

@@ -3,6 +3,7 @@ class Connector {
   //int connectedFrom; // node number in nodes ArrayList
   //int connectedTo;   // node number in nodes ArrayList
   Node startNode, endNode, closestNode;
+  int startNodeIndex, endNodeIndex, n;
   //boolean drawing = false;    // is the connector currently being drawn?
   float dist;
   float springLength = 130;
@@ -15,16 +16,52 @@ class Connector {
 
   Node findClosestNode(ArrayList<Node> candidates, VerletParticle2D anchor) {    // finds closest node to connector end(s)
     float minDist = width*height;
-    for (int i = 0; i < candidates.size(); i++) {
+    for (int i = candidates.size()-1; i >= 0; i--) {
       dist = sqrt(sq(candidates.get(i).x - anchor.x) + sq(candidates.get(i).y - anchor.y));
-      if (dist < minDist) {
+      if ((dist < minDist)) { //&&(dist != 0)
         minDist = dist;
-        //if (minDist < 20){      // limit to some radius
+        //if (minDist < 20) {      // limit to some radius
         closestNode = candidates.get(i);
+        //n = i;
+        //if (isStart) {
+        //  startNodeIndex = i;
+        //  startNode = closestNode;
+        //  n = startNodeIndex;
+        //} else {
+        //  endNodeIndex = i;
+        //  endNode = closestNode;
+        //  n = endNodeIndex;
+        //}
         //}
       }
     }
-    return closestNode;  // should check for closestNode == null
+    //println(n);
+    return closestNode;  // should check for closestNode == null (if limiting minDist to some radius)
+  }
+  
+  int getClosestIndex(ArrayList<Node> candidates, VerletParticle2D anchor) {    // returns closest node index. No idea why cloestNode is always 0 if I try to extract it without using this function.
+    float minDist = width*height;
+    for (int i = candidates.size()-1; i >= 0; i--) {
+      dist = sqrt(sq(candidates.get(i).x - anchor.x) + sq(candidates.get(i).y - anchor.y));
+      if ((dist < minDist)) { //&&(dist != 0)
+        minDist = dist;
+        //if (minDist < 20) {      // limit to some radius
+        closestNode = candidates.get(i);
+        n = i;
+        //if (isStart) {
+        //  startNodeIndex = i;
+        //  startNode = closestNode;
+        //  x = startNodeIndex;
+        //} else {
+        //  endNodeIndex = i;
+        //  endNode = closestNode;
+        //  x = endNodeIndex;
+        //}
+        //}
+      }
+    }
+    //println(n);
+    return n;  // should check for closestNode == null (if limiting minDist to some radius)
   }
 
   void setEndpoint(VerletParticle2D p3, VerletParticle2D p4) {
