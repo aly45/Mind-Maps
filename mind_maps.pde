@@ -16,14 +16,19 @@ boolean overNode = false, nodeSelected = false, nodeMoved = false, drawing = fal
 Node selectedNode, someNode, startNode, endNode;
 int sn, en;//startNodeIndex, endNodeIndex;
 
+//void settings(){
+//  //fullScreen();
+//}
+
+
 void setup() {
-  size(600, 400);
+  size(800, 600);
   surface.setTitle("Mind Maps");  // add file name to this, or "New mind map" if no file selected
   surface.setResizable(true);
   //surface.setLocation(100, 100); // location on device screen
 
   physics = new VerletPhysics2D();
-  physics.setDrag (0.025); //0.05  
+  physics.setDrag (0.9); //0.025  
 
   nodes = new ArrayList<Node>();
   connectors = new ArrayList<Connector>();
@@ -45,14 +50,13 @@ void setup() {
   catch (NullPointerException e) {
     e.printStackTrace();
   }
-
-  //for (int i = 0; i < nodes.size(); i++) {
-  //  nodes.get(i).addText(nodes.get(i).selected);  // Not sure why this doesn't work. Need to run it once in draw() for some reason.
-  //}
+  for (int i = 0; i < nodes.size(); i++) {
+    nodes.get(i).findAdjacentNodes(i, connectorData);
+  }
 }
 
 void draw() {
-  physics.setWorldBounds(new Rect(0, 0, width - 5, height - 5));
+  physics.setWorldBounds(new Rect(0, 0, width - 5, height - 5));  // should make this NEVER SHRINK PHYSICS WORLD BOUNDS!
   background(150); //10, 17, 60);
   //physics.update ();
 
@@ -158,7 +162,7 @@ void mouseReleased() {
         row.setInt("ending node index", connectors.get(connectors.size()-1).endNodeIndex);
         println("End node index is " + connectors.get(connectors.size()-1).endNodeIndex);
         connectors.get(connectors.size()-1).setEndpoint(endNode, endNode);          // set closest node as end node (for this connection)
-        connectors.get(connectors.size()-1).connect(startNode, endNode);            // connect the nodes together with a verletSpring
+        connectors.get(connectors.size()-1).connect(startNode, endNode, -15);            // connect the nodes together with a verletSpring
         Connector c = connectors.get(connectors.size()-1);
 
         if (connectors.size()>1) {
@@ -210,13 +214,13 @@ void saveData(String filename) {
   saveTable(nodeData, filename + "/nodeData.csv");
 
   //connectorData.clearRows();                         // resets table
-  for (int i = 0; i < connectors.size(); i++) {        // fills rows of table
-    TableRow row = connectorData.getRow(i);
-    row.setString("# row number", "#" + i+1);        // this is almost useless atm...
-    //println("starting nodes....." + connectors.get(i).startNodeIndex);
-    //  row.setInt("ending node index", connectors.get(i).endNodeIndex);
-    //println("ending nodes....." + connectors.get(i).endNodeIndex);
-  }
+  //for (int i = 0; i < connectors.size(); i++) {        // fills rows of table
+  //  TableRow row = connectorData.getRow(i);
+  //  //row.setString("# row number", "#" + i+1);        // this is useless atm...
+  //  //println("starting nodes....." + connectors.get(i).startNodeIndex);
+  //  //  row.setInt("ending node index", connectors.get(i).endNodeIndex);
+  //  //println("ending nodes....." + connectors.get(i).endNodeIndex);
+  //}
   saveTable(connectorData, filename + "/connectorData.csv");
 }
 

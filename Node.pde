@@ -9,12 +9,14 @@ class Node extends VerletParticle2D {
   StringList letters = new StringList();
   String words = "";
   int k = 0;
+  IntList connections = new IntList();    // array of node indices that this node is connected to
+  String connectionMode;
   //Pfont font;
 
   Node(Vec2D loc, float tempw, float temph, PApplet pa) {
     super(loc);  // loc is an x, y vector (I think)
     //displacement = loc;
-    velocity = this.getVelocity();
+    //velocity = this.getVelocity();
     physics.addParticle(this);
 
     w = tempw;  // width and height of node
@@ -70,7 +72,6 @@ class Node extends VerletParticle2D {
         k += 1;
       }
     }
-
     
       words = "";
       for (int i=0; i<letters.size(); i+=1) {  // build up words String out of letters StringList
@@ -93,18 +94,35 @@ class Node extends VerletParticle2D {
           lastIndex = n;
         }
       }
-      //} else if  ((w > maxWidth)&&(words.contains(" "))&&(!wrapped)) {    // wrap text in first line with any spaces
-      //  wrapped = true;
-      //  numNewlines += 1;
-      //  w = maxWidth + 5;
-      //}
       h += numNewlines*(fontSize);    // resizes height of node and text area
     } else {
       w = 70;
       h = 30;
     }    
   }
-
+  
+    //void findAdjacentNodes(VerletParticle2D n, Table t, ArrayList<Node> candidates) {  //input connectorData table, and nodes arraylist
+  void findAdjacentNodes(int i, Table t) {  //input current node index, connectorData table
+    //for (int i = 0; i < t.getRowCount(); i++){
+    //  TableRow row = t.getRow(i);
+    //}
+    //for (int i = candidates.size()-1; i >= 0; i--) {    // goes through all nodes
+    int numConnections = 0;
+    connections.clear();
+    for (TableRow row : t.findRows(str(i), "starting node index")) {    // finds rows with starting node index i
+      numConnections++;
+      println(row.getString("starting node index") + " connects to " + row.getString("ending node index"));
+      connections.append(int(row.getString("ending node index")));    // compiles list of nodes to which this node is connected
+      // want to add verlet particle connection to each node connection
+    }
+    if (numConnections == 2) {
+      connectionMode = "AVERAGE_GRADIENT";
+    }
+    if (numConnections > 2) {
+      connectionMode = "FORCE_CONNECTED";
+    }
+    //}
+  }
 
   boolean mouseOver(float tempx, float tempy) {
     if ((pmouseX >= tempx - w/2)&&(pmouseX <= tempx + w/2) && 
