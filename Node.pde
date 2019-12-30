@@ -3,7 +3,7 @@ HandyRenderer HR;
 
 class Node extends VerletParticle2D {
   boolean sketchy = false;
-  float fontSize = 20, vertSpace = 20, w = 70, h = 30, maxWidth = 120, radius, strength = 2; //0.2;
+  float fontSize = 20, vertSpace = 20, w = 70, h = 30, maxWidth = 120, radius, strength = 1; //0.2;
   boolean selected = false, highlighted = false, wrapped = false;
   Vec2D displacement, velocity, acceleration; // initialised from draw screen origin (0,0)
   StringList letters = new StringList();
@@ -22,7 +22,7 @@ class Node extends VerletParticle2D {
     w = tempw;  // width and height of node
     h = temph;
 
-    physics.addBehavior(new AttractionBehavior2D(this, w + 3, -strength));
+    physics.addBehavior(new AttractionBehavior2D(this, 73, -strength)); // the second entry used to be: w + 3, but having differing attractionbehaviors makes things go crazy
 
     // HANDY STUFF:
     HR = HandyPresets.createMarker(pa); //new HandyRenderer(this);

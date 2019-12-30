@@ -15,20 +15,23 @@ String MODE = "PLACING_NODES"; // "NODE_SELECTED";
 boolean overNode = false, nodeSelected = false, nodeMoved = false, drawing = false, sketchy = false, textLoaded = false, dragging = false;
 Node selectedNode, someNode, startNode, endNode;
 int sn, en;//startNodeIndex, endNodeIndex;
+int maxWidth = 800, maxHeight = 600;
+Menu m;
 
-//void settings(){
-//  //fullScreen();
-//}
-
+void settings() {
+  size(maxWidth, maxHeight);
+  smooth();
+}
 
 void setup() {
-  size(800, 600);
   surface.setTitle("Mind Maps");  // add file name to this, or "New mind map" if no file selected
   surface.setResizable(true);
   //surface.setLocation(100, 100); // location on device screen
 
+  m = new Menu();    // Creates new menu
+
   physics = new VerletPhysics2D();
-  physics.setDrag (0.9); //0.025  
+  physics.setDrag (1); //0.025  
 
   nodes = new ArrayList<Node>();
   connectors = new ArrayList<Connector>();
@@ -50,15 +53,21 @@ void setup() {
   catch (NullPointerException e) {
     e.printStackTrace();
   }
+
   for (int i = 0; i < nodes.size(); i++) {
     nodes.get(i).findAdjacentNodes(i, connectorData);
   }
 }
 
 void draw() {
-  physics.setWorldBounds(new Rect(0, 0, width - 5, height - 5));  // should make this NEVER SHRINK PHYSICS WORLD BOUNDS!
+  if (width > maxWidth) {
+    maxWidth = width;
+  }
+  if (height > maxHeight) {
+    maxHeight = height;
+  }
+  physics.setWorldBounds(new Rect(0, 0, maxWidth - 5, maxHeight - 5));  // should never shrink physics world bounds
   background(150); //10, 17, 60);
-  //physics.update ();
 
   try {
     physics.update ();    // common error is having a null particle
@@ -99,21 +108,90 @@ void draw() {
   for (Node n : nodes) {  // for every node in the arrayList nodes,
     n.display();          // display the node
   }
-  //println(overNode);
+
+  // updates and displays menu:
+  m.move(width, height);
+  m.display();
 }
 
-//void MouseDragged() {    // MouseDragged/Moved can't be called. Why?
-//  dragging = true;
-//  println("Dragging!");
-//}
 
-//void MouseMoved() {
-//  dragging = false;
-//  println("Moving!");
-//}
+void mouseClicked() {
+  //if ((mouseX==pmouseX)&&(mouseY==pmouseY)) { // stay still!  -- only need this if using mouseRelased() ?
 
-void mouseReleased() {
-  if ((mouseX==pmouseX)&&(mouseY==pmouseY)) { // stay still!
+  if (m.showingMenu) {
+    if (m.X.isOver) {
+      m.showingMenu = false;
+      m.menuMode = "MAIN";
+    } else if (m.menuMode=="MAIN") {      // MAIN MENU BUTTON CONTROLS
+      if (m.saveButton.isOver) {
+        m.menuMode = "SAVE";
+        m.previousMode = "MAIN";
+      }
+      if (m.loadButton.isOver) {
+        m.menuMode = "LOAD";
+        m.previousMode = "MAIN";
+      }
+      if (m.newButton.isOver) {
+        m.menuMode = "NEW";
+        m.previousMode = "MAIN";
+      }
+    } else if (m.menuMode=="SAVE") {      // SAVE MENU CONTROLS
+      if (m.yesButton.isOver) {
+        m.filename = m.t1.words;
+        // save file
+        //menuMode = "END";
+        m.showingMenu = false;
+        m.menuMode = "MAIN";
+      }
+      if (m.noButton.isOver) {
+        m.filename = m.t1.words;
+        m.t1.doneTyping = false;
+        m.previousMode = "SAVE";
+      }
+      if ((m.backButton.isOver)) {
+        println("entering back if statement");
+        m.menuMode = "MAIN";
+        m.t1.doneTyping = false;
+      }
+    } else if (m.menuMode=="LOAD") {      // LOAD MENU CONTROLS
+      if (m.folderButton.isOver) {
+        selectFolder("Select a folder to process:", "folderSelected");
+      }
+      if (m.yesButton.isOver) {
+        m.filename = m.t2.words;
+        // load file
+        // menuMode = "END";
+        m.menuMode = "MAIN";
+        m.showingMenu = false;
+      }
+      if (m.noButton.isOver) {
+        m.filename = m.t2.words;
+        m.t2.doneTyping = false;
+        m.previousMode = "SAVE";
+      }
+      if ((m.backButton.isOver)) {
+        println("entering back if statement");      
+        m.t2.doneTyping = false;
+        m.menuMode = "MAIN";
+      }
+    } else if (m.menuMode=="NEW") {      // NEW MENU CONTROLS
+      if (m.yesButton.isOver) {
+        m.filename = m.t2.words;
+        // reset current work
+        // reset current filename to ""
+        m.menuMode = "MAIN";
+        m.showingMenu = false;
+      }
+      if (m.noButton.isOver) {
+        m.filename = m.t2.words;
+        m.menuMode = "MAIN";
+      }
+      if ((m.backButton.isOver)) {
+        println("entering back if statement");
+        m.menuMode = "MAIN";
+      }
+    }
+  } else {
     if (mouseButton == LEFT) {
       //println(nodes.size());
       if (!overNode) {
@@ -179,26 +257,31 @@ void mouseReleased() {
 }
 
 void keyTyped() { 
-  if (key == CONTROL) {
-    println("starting node: " + sn);    
-    println("ending node: " + en);
-  }
-  for (int i = 0; i < nodes.size(); i++) {    // goes through all the nodes
-    nodes.get(i).addText(nodes.get(i).selected);     // add text to selected node
+  if (m.showingMenu) {
+    if (m.menuMode == "SAVE") {
+      m.t1.addText(m.t1.doneTyping);
+    } else if (m.menuMode == "LOAD") {
+      m.t2.addText(m.t2.doneTyping);
+    }
+  } else {
+    if (key == CONTROL) {
+      println("starting node: " + sn);    
+      println("ending node: " + en);
+    }
+    for (int i = 0; i < nodes.size(); i++) {    // goes through all the nodes
+      nodes.get(i).addText(nodes.get(i).selected);     // add text to selected node
+    }
   }
 }
 
 void keyPressed() {
   if (key == ESC) {
+    key = 0;  // clears current key to override usual exit function
+    m.showingMenu = true;
+  }
+  if ((keyCode == CONTROL)&&(key == 's')) {
     saveData("test");
   }
-  //if (key == ESC) {
-  //  println("starting node: " + sn);    
-  //  println("ending node: " + en);
-  //}
-  //for (int i = 0; i < nodes.size(); i++) {    // goes through all the nodes
-  //  nodes.get(i).addText(nodes.get(i).selected);     // add text to selected node
-  //}
 }
 
 void saveData(String filename) {
@@ -281,6 +364,13 @@ void loadData(String filename) {
   // Could also set the node locations back to what they are in nodeData.csv if I wanted them to be exactly the same as what was saved
 }
 
+void folderSelected(File selection) {
+  if (selection == null) {
+    println("You folde(re)d.");
+  } else {
+    println("You selected: " + selection.getAbsolutePath());
+  }
+}
 
 //void keyPressed() {
 //  if (key == BACKSPACE) {

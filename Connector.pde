@@ -7,7 +7,8 @@ class Connector {
   //boolean drawing = false;    // is the connector currently being drawn?
   float dist;
   float springLength = 130;
-  float springStrength = 0.002;//0.002;
+  float springStrength = 0.0015;//0.002;
+  float virtualDistance = 0.01; //changing this won't change much because of the repulsion forces on the virtual particles
   //float strength = 2;
   String connectionMode;
   VerletParticle2D v1, v2;
@@ -79,24 +80,24 @@ class Connector {
     node2Pos = new Vec2D(n2.x, n2.y); // node 2 position vector
     connectorVector = node2Pos.sub(node1Pos); // hopefully this is pointing from node 1 to node 2
     //Vec2D connectionVector = new Vec2D(n2.x - n1.x, n2.y - n1.y); // points from node 1 to node 2    
-    VirtualPos1 = node1Pos.add(connectorVector.scale(0.2));  // position vector of virtual particle 1
-    VirtualPos2 = node2Pos.sub(connectorVector.scale(0.2));  // position vector of virtual particle 2
+    VirtualPos1 = node1Pos.add(connectorVector.scale(0.01));  // position vector of virtual particle 1
+    VirtualPos2 = node2Pos.sub(connectorVector.scale(0.01));  // position vector of virtual particle 2
 
     if (curveBegin != curveEnd) {
       v1 = new VerletParticle2D(VirtualPos1);
-      physics.addBehavior(new AttractionBehavior2D(v1, n1.w + 3, -n1.strength));
+      physics.addBehavior(new AttractionBehavior2D(v1, 73, -n1.strength));
       physics.addParticle(v1);
       v2 = new VerletParticle2D(VirtualPos2);
       physics.addParticle(v2);
-      physics.addBehavior(new AttractionBehavior2D(v2, n2.w + 3, -n2.strength));
-      physics.addSpring(new VerletSpring2D(n1, v1, nodesDist*0.1, springStrength));  // mini spring from first node
+      physics.addBehavior(new AttractionBehavior2D(v2, 73, -n1.strength));
+      physics.addSpring(new VerletSpring2D(n1, v1, nodesDist*virtualDistance, springStrength));  // mini spring from first node
       //println("node 1 is at " + n1.x + ", " + n1.y);      
 
       //println("virtual particle 1 is at: " + VirtualPos1.x + ", " + VirtualPos1.y);
-      physics.addSpring(new VerletSpring2D(v1, v2, nodesDist*0.9, springStrength*0.2));  // main verlet spring
+      physics.addSpring(new VerletSpring2D(v1, v2, nodesDist*0.7, springStrength));  // main verlet spring
 
       //println("virtual particle 2 is at: " + VirtualPos2.x + ", " + VirtualPos2.y);
-      physics.addSpring(new VerletSpring2D(v2, n2, nodesDist*0.1, springStrength));  // mini spring from second node
+      physics.addSpring(new VerletSpring2D(v2, n2, nodesDist*virtualDistance, springStrength));  // mini spring from second node
       //println("node 2 is at " + n2.x + ", " + n2.y);
     }
   }
@@ -109,24 +110,24 @@ class Connector {
     node1Pos = new Vec2D(n1.x, n1.y); // node 1 position vector
     node2Pos = new Vec2D(n2.x, n2.y); // node 2 position vector
     connectorVector = node2Pos.sub(node1Pos); // points from node 1 to node 2  
-    VirtualPos1 = node1Pos.add(connectorVector.scale(0.2));  // position vector of virtual particle 1
-    VirtualPos2 = node2Pos.sub(connectorVector.scale(0.2));  // position vector of virtual particle 2
+    VirtualPos1 = node1Pos.add(connectorVector.scale(virtualDistance));  // position vector of virtual particle 1
+    VirtualPos2 = node2Pos.sub(connectorVector.scale(virtualDistance));  // position vector of virtual particle 2
 
     if (curveBegin != curveEnd) {
       v1 = new VerletParticle2D(VirtualPos1);
-      physics.addBehavior(new AttractionBehavior2D(v1, n1.w + 3, -n1.strength));
+      physics.addBehavior(new AttractionBehavior2D(v1, 73, -n1.strength));
       physics.addParticle(v1);
       v2 = new VerletParticle2D(VirtualPos2);
-      physics.addBehavior(new AttractionBehavior2D(v2, n2.w + 3, -n2.strength));
+      physics.addBehavior(new AttractionBehavior2D(v2, 73, -n1.strength));
       physics.addParticle(v2);
-      physics.addSpring(new VerletSpring2D(n1, v1, nodesDist*0.1, springStrength));  // mini spring from first node
+      physics.addSpring(new VerletSpring2D(n1, v1, nodesDist*virtualDistance, springStrength));  // mini spring from first node
       println("node 1 is at " + n1.x + ", " + n1.y);      
 
       println("virtual particle 1 is at: " + VirtualPos1.x + ", " + VirtualPos1.y);
-      physics.addSpring(new VerletSpring2D(v1, v2, nodesDist*0.9 + tempLength, springStrength));  // main verlet spring
+      physics.addSpring(new VerletSpring2D(v1, v2, nodesDist*0.7 + tempLength, springStrength));  // main verlet spring
 
       println("virtual particle 2 is at: " + VirtualPos2.x + ", " + VirtualPos2.y);
-      physics.addSpring(new VerletSpring2D(v2, n2, nodesDist*0.1, springStrength));  // mini spring from second node
+      physics.addSpring(new VerletSpring2D(v2, n2, nodesDist*virtualDistance, springStrength));  // mini spring from second node
       println("node 2 is at " + n2.x + ", " + n2.y);
     }
   }
@@ -138,9 +139,9 @@ class Connector {
       if (curveBegin != curveEnd) {
         stroke(0);
         bezier(curveBegin.x, curveBegin.y, v1.x, v1.y, v2.x, v2.y, curveEnd.x, curveEnd.y);
-        stroke(255);
-        ellipse(v1.x, v1.y, 5, 5);
-        ellipse(v2.x, v2.y, 5, 5);
+        //stroke(255);
+        //ellipse(v1.x, v1.y, 5, 5);
+        //ellipse(v2.x, v2.y, 5, 5);
       }
     }
   }
