@@ -2,9 +2,10 @@ class TextBox {
   float fontSize = 20, vertSpace = 20, w = 70, h = 30, x, y;
   boolean selected = false, doneTyping = false;
   StringList letters = new StringList();
-  String words = "";
+  String text = "";
   int k = 0;
 
+// TODO: should shift text left by last character width whenever total text width exceeds text box size
   TextBox(float xPos, float yPos, float boxWidth, float boxHeight) {
     x = xPos;
     y = yPos;
@@ -25,7 +26,7 @@ class TextBox {
       fill(0);
       textSize(fontSize);
       textAlign(LEFT);
-      text(words, x+2, y, w, h);  // display typed text on rectangle location
+      text(text, x+2, y, w, h);  // display typed text on rectangle location
     }
   }
 
@@ -49,9 +50,9 @@ class TextBox {
         k += 1;
       }
 
-      words = "";
+      text = "";
       for (int i=0; i<letters.size(); i+=1) {  // build up words String out of letters StringList
-        words += letters.get(i);
+        text += letters.get(i);
       }
     }
   }

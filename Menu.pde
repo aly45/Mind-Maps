@@ -59,7 +59,7 @@ class Menu {
           fill(255);
           textSize(20);
           textAlign(CENTER);
-          text("Save as '" + t1.words +"' ?", w/2, h/2 + 2);
+          text("Save as '" + t1.text +"' ?", w/2, h/2 + 2);
           yesButton.display(160);
           yesButton.mouseOver();
           noButton.display(160);
@@ -73,7 +73,7 @@ class Menu {
           fill(green);
           textAlign(LEFT);
           textSize(15);
-          text(" or enter folder path:", w/2 - 32, h/2 - t2.fontSize);
+          text(" or enter file name:", w/2 - 32, h/2 - t2.fontSize); // previously:  " or enter folder path:"
           t2.display(t2.doneTyping);
           //text("Press enter to continue", w/2 + t2.w/2, h/2 - t2.fontSize);    // need to set t2.letters = chosen folder path
           backButton.display(160);
@@ -83,7 +83,7 @@ class Menu {
           fill(255);
           textSize(20);
           textAlign(CENTER);
-          text("Load '" + t2.words +"' ?", w/2, h/2 + 2);
+          text("Load '" + t2.text +"' ?", w/2, h/2 + 2);
           yesButton.display(160);
           yesButton.mouseOver();
           noButton.display(160);

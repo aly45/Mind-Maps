@@ -46,58 +46,50 @@ void setup() {
   connectorData.addColumn("starting node index");    // adds columns to table connectorData
   connectorData.addColumn("ending node index");
   connectorData.clearRows();                           // resets table
-
-  try {
-    loadData("test");
-  } 
-  catch (NullPointerException e) {
-    e.printStackTrace();
-  }
-
-  for (int i = 0; i < nodes.size(); i++) {
-    nodes.get(i).findAdjacentNodes(i, connectorData);
-  }
 }
 
 void draw() {
+  background(150); //10, 17, 60);
   if (width > maxWidth) {
     maxWidth = width;
   }
   if (height > maxHeight) {
     maxHeight = height;
   }
-  physics.setWorldBounds(new Rect(0, 0, maxWidth - 5, maxHeight - 5));  // should never shrink physics world bounds
-  background(150); //10, 17, 60);
 
-  try {
-    physics.update ();    // common error is having a null particle
-  } 
-  catch (NullPointerException e) {
-    println(someNode);
-    exit();
-  }
+  if (!m.showingMenu) {
+    physics.setWorldBounds(new Rect(0, 0, maxWidth - 5, maxHeight - 5));  // should never shrink physics world bounds    
 
-  mouse = new Vec2D(mouseX, mouseY);
+    try {
+      physics.update ();    // common error is having a null particle
+    } 
+    catch (NullPointerException e) {
+      println(someNode);
+      exit();
+    }
 
-  if (drawing) {
-    stroke(0);
-    line(xAnchor, yAnchor, mouseX, mouseY);
-  }
+    mouse = new Vec2D(mouseX, mouseY);
 
-  if (nodes.size() > 0) {
-    overNode = nodes.get(0).mouseOver(nodes.get(0).x, nodes.get(0).y);
-  }
-  for (int i = 0; i < nodes.size(); i++) {    // goes through all the nodes
-    overNode = overNode||(nodes.get(i).mouseOver(nodes.get(i).x, nodes.get(i).y));    // update global variable overNode
-    nodes.get(i).sketch(nodes.get(i).selected);
-    nodes.get(i).addText(nodes.get(i).selected && !textLoaded);
-    textLoaded = true;
+    if (drawing) {
+      stroke(0);
+      line(xAnchor, yAnchor, mouseX, mouseY);
+    }
 
-    if ((mousePressed)&&(mouseButton == LEFT)&&(nodes.get(i).mouseOver(nodes.get(i).x, nodes.get(i).y))) {
-      nodes.get(i).lock();
-      nodes.get(i).set(mouseX, mouseY);
-    } else {
-      nodes.get(i).unlock();
+    if (nodes.size() > 0) {
+      overNode = nodes.get(0).mouseOver(nodes.get(0).x, nodes.get(0).y);
+    }
+    for (int i = 0; i < nodes.size(); i++) {    // goes through all the nodes
+      overNode = overNode||(nodes.get(i).mouseOver(nodes.get(i).x, nodes.get(i).y));    // update global variable overNode
+      nodes.get(i).sketch(nodes.get(i).selected);
+      nodes.get(i).addText(nodes.get(i).selected && !textLoaded);
+      textLoaded = true;
+
+      if ((mousePressed)&&(mouseButton == LEFT)&&(nodes.get(i).mouseOver(nodes.get(i).x, nodes.get(i).y))) {
+        nodes.get(i).lock();
+        nodes.get(i).set(mouseX, mouseY);
+      } else {
+        nodes.get(i).unlock();
+      }
     }
   }
 
@@ -137,14 +129,14 @@ void mouseClicked() {
       }
     } else if (m.menuMode=="SAVE") {      // SAVE MENU CONTROLS
       if (m.yesButton.isOver) {
-        m.filename = m.t1.words;
+        m.filename = m.t1.text;
         // save file
         //menuMode = "END";
         m.showingMenu = false;
         m.menuMode = "MAIN";
       }
       if (m.noButton.isOver) {
-        m.filename = m.t1.words;
+        m.filename = m.t1.text;
         m.t1.doneTyping = false;
         m.previousMode = "SAVE";
       }
@@ -158,14 +150,24 @@ void mouseClicked() {
         selectFolder("Select a folder to process:", "folderSelected");
       }
       if (m.yesButton.isOver) {
-        m.filename = m.t2.words;
-        // load file
+        m.filename = m.t2.text;
+        // LOAD FILE "filename"
+        try {
+          loadData(m.filename);
+        } 
+        catch (NullPointerException e) {
+          e.printStackTrace();
+        }
+
+        for (int i = 0; i < nodes.size(); i++) {
+          nodes.get(i).findAdjacentNodes(i, connectorData);
+        }
         // menuMode = "END";
         m.menuMode = "MAIN";
         m.showingMenu = false;
       }
       if (m.noButton.isOver) {
-        m.filename = m.t2.words;
+        m.filename = m.t2.text;
         m.t2.doneTyping = false;
         m.previousMode = "SAVE";
       }
@@ -176,14 +178,14 @@ void mouseClicked() {
       }
     } else if (m.menuMode=="NEW") {      // NEW MENU CONTROLS
       if (m.yesButton.isOver) {
-        m.filename = m.t2.words;
-        // reset current work
+        m.filename = m.t2.text;
         // reset current filename to ""
+        // reset current work  
         m.menuMode = "MAIN";
         m.showingMenu = false;
       }
       if (m.noButton.isOver) {
-        m.filename = m.t2.words;
+        m.filename = m.t2.text;
         m.menuMode = "MAIN";
       }
       if ((m.backButton.isOver)) {
@@ -205,7 +207,6 @@ void mouseClicked() {
             //MODE = "NODE_SELECTED";
             n.selected = !n.selected; //true;
             nodeSelected = nodeSelected||(n.selected);
-            //nodeSelected = true;   // should rewrite ... to only select if the node hasn't been dragged.
             selectedNode = n;
           } else {
             n.selected = false;
@@ -264,10 +265,11 @@ void keyTyped() {
       m.t2.addText(m.t2.doneTyping);
     }
   } else {
-    if (key == CONTROL) {
-      println("starting node: " + sn);    
-      println("ending node: " + en);
-    }
+    //if (key == CONTROL) {
+    //  println("starting node: " + sn);    
+    //  println("ending node: " + en);
+    //}
+    textSize(20);
     for (int i = 0; i < nodes.size(); i++) {    // goes through all the nodes
       nodes.get(i).addText(nodes.get(i).selected);     // add text to selected node
     }
@@ -277,7 +279,10 @@ void keyTyped() {
 void keyPressed() {
   if (key == ESC) {
     key = 0;  // clears current key to override usual exit function
-    m.showingMenu = true;
+    if (m.showingMenu) {
+      m.menuMode = "MAIN";
+    }
+    m.showingMenu = !m.showingMenu;
   }
   if ((keyCode == CONTROL)&&(key == 's')) {
     saveData("test");
@@ -356,10 +361,6 @@ void loadData(String filename) {
       connectors.get(connectors.size()-1).connect(nodes.get(sni), nodes.get(eni));              // connect the nodes together with a verletSpring
     }
   }
-  //if (row){
-  ////for (TableRow row: connectorData.findRows("1",0)){
-  //  println(row.getRow("starting node index"));
-  //}
   println("Loaded " + connectors.size() + " connectors.");
   // Could also set the node locations back to what they are in nodeData.csv if I wanted them to be exactly the same as what was saved
 }
@@ -368,7 +369,10 @@ void folderSelected(File selection) {
   if (selection == null) {
     println("You folde(re)d.");
   } else {
-    println("You selected: " + selection.getAbsolutePath());
+    String filePath = selection.getAbsolutePath();
+    println("You selected: " + filePath);
+    m.filename = filePath;
+    m.t2.text = m.filename;
   }
 }
 
