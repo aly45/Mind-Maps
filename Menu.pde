@@ -83,7 +83,16 @@ class Menu {
           fill(255);
           textSize(20);
           textAlign(CENTER);
-          text("Load '" + t2.text +"' ?", w/2, h/2 + 2);
+          //String[] match = match(t2.text, "([^\\\\]*)$");
+          //if (match != null){
+          //  filename = match[0];
+          //  println("match found is: " + filename);
+          //} else {
+          //  filename = t2.text;
+          //  println("No match found...");
+          //}   
+          textLeading(20);
+          text("Load file:\n'" + filename +"' ?", w/2, h/2 - menuHeight/4 + 5); 
           yesButton.display(160);
           yesButton.mouseOver();
           noButton.display(160);

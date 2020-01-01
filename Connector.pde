@@ -18,6 +18,20 @@ class Connector {
     anchor1 = p2;    // where the curve start should be next
   }
 
+  void display() {
+    strokeWeight(2);
+    noFill();
+    if ((curveBegin != null)&&(curveEnd != null)) {  // checks if curveBegin and curveEnd are actually assigned.
+      if (curveBegin != curveEnd) {
+        stroke(0);
+        bezier(curveBegin.x, curveBegin.y, v1.x, v1.y, v2.x, v2.y, curveEnd.x, curveEnd.y);
+        //stroke(255);
+        //ellipse(v1.x, v1.y, 5, 5);
+        //ellipse(v2.x, v2.y, 5, 5);
+      }
+    }
+  }
+
   Node findClosestNode(ArrayList<Node> candidates, VerletParticle2D anchor) {    // finds closest node to connector end(s)
     float minDist = width*height;
     for (int i = candidates.size()-1; i >= 0; i--) {
@@ -26,16 +40,6 @@ class Connector {
         minDist = dist;
         //if (minDist < 20) {      // limit to some radius
         closestNode = candidates.get(i);
-        //n = i;
-        //if (isStart) {
-        //  startNodeIndex = i;
-        //  startNode = closestNode;
-        //  n = startNodeIndex;
-        //} else {
-        //  endNodeIndex = i;
-        //  endNode = closestNode;
-        //  n = endNodeIndex;
-        //}
         //}
       }
     }
@@ -52,19 +56,9 @@ class Connector {
         //if (minDist < 20) {      // limit to some radius
         closestNode = candidates.get(i);
         n = i;
-        //if (isStart) {
-        //  startNodeIndex = i;
-        //  startNode = closestNode;
-        //  x = startNodeIndex;
-        //} else {
-        //  endNodeIndex = i;
-        //  endNode = closestNode;
-        //  x = endNodeIndex;
-        //}
         //}
       }
     }
-    //println(n);
     return n;  // should check for closestNode == null (if limiting minDist to some radius)
   }
 
@@ -131,19 +125,9 @@ class Connector {
       println("node 2 is at " + n2.x + ", " + n2.y);
     }
   }
-
-  void display() {
-    strokeWeight(2);
-    noFill();
-    if ((curveBegin != null)&&(curveEnd != null)) {  // checks if curveBegin and curveEnd are actually assigned.
-      if (curveBegin != curveEnd) {
-        stroke(0);
-        bezier(curveBegin.x, curveBegin.y, v1.x, v1.y, v2.x, v2.y, curveEnd.x, curveEnd.y);
-        //stroke(255);
-        //ellipse(v1.x, v1.y, 5, 5);
-        //ellipse(v2.x, v2.y, 5, 5);
-      }
-    }
+  
+  void delete(){
+    
   }
 
   boolean mouseOver(float tempx, float tempy, float tempw, float temph) {

@@ -257,7 +257,7 @@ void mouseClicked() {
   }
 }
 
-void keyTyped() { 
+void keyTyped() {
   if (m.showingMenu) {
     if (m.menuMode == "SAVE") {
       m.t1.addText(m.t1.doneTyping);
@@ -333,6 +333,7 @@ void loadData(String filename) {
     // Turn each row into a node
     if (x > 0) { // this makes sure blank rows aren't being turned into nodes (checks validity of x position)
       nodes.add(new Node(new Vec2D(x, y), w, h, this));    // ADD a new NODE
+      nodes.get(i).k = t.length();
       for (int c = 0; c < t.length(); c++) {
         nodes.get(i).letters.append(str(t.charAt(c)));      // fills the letters ArrayList
       }
@@ -371,8 +372,20 @@ void folderSelected(File selection) {
   } else {
     String filePath = selection.getAbsolutePath();
     println("You selected: " + filePath);
-    m.filename = filePath;
-    m.t2.text = m.filename;
+    String[] match = match(filePath, "([^\\\\]*)$");
+    if (match != null) {
+      m.filename = match[0];
+      println("match found is: " + m.filename);
+    } else {
+      m.filename = m.t2.text;
+      println("No match found...");
+    }   
+    m.t2.text = m.filename;        // sets textbox text to file path
+    m.t2.k = m.t2.text.length();   // sets number of characters in letters arraylist
+    m.t2.letters.clear();
+    for (int c = 0; c < m.t2.k; c++) {
+      m.t2.letters.append(str(m.t2.text.charAt(c)));      // fills the letters ArrayList of the t2 textbox of menu m
+    }
   }
 }
 
