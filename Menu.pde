@@ -79,18 +79,10 @@ class Menu {
           backButton.display(160);
           backButton.mouseOver();
         }
-        if (t2.doneTyping) {        
+        if (t2.doneTyping) {        // doneTyping should be set when ENTER/RETURN is pressed
           fill(255);
           textSize(20);
           textAlign(CENTER);
-          //String[] match = match(t2.text, "([^\\\\]*)$");
-          //if (match != null){
-          //  filename = match[0];
-          //  println("match found is: " + filename);
-          //} else {
-          //  filename = t2.text;
-          //  println("No match found...");
-          //}   
           textLeading(20);
           text("Load file:\n'" + filename +"' ?", w/2, h/2 - menuHeight/4 + 5); 
           yesButton.display(160);

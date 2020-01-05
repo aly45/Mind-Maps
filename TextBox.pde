@@ -36,6 +36,7 @@ class TextBox {
       if ((key == ENTER)||(key == RETURN)) {
         if (k>0) {
           doneTyping = true;
+          m.filename = m.t2.text;
         }
       } else if (key == BACKSPACE) {
         if (k>0) {

@@ -11,6 +11,7 @@ class Node extends VerletParticle2D {
   int k = 0;
   IntList connections = new IntList();    // array of node indices that this node is connected to
   String connectionMode;
+  AttractionBehavior2D a;
   //Pfont font;
 
   Node(Vec2D loc, float tempw, float temph, PApplet pa) {
@@ -22,7 +23,8 @@ class Node extends VerletParticle2D {
     w = tempw;  // width and height of node
     h = temph;
 
-    physics.addBehavior(new AttractionBehavior2D(this, 73, -strength)); // the second entry used to be: w + 3, but having differing attractionbehaviors makes things go crazy
+    a = new AttractionBehavior2D(this, 73, -strength);  // sets a to new 2D attraction behavior
+    physics.addBehavior(a); // the second entry used to be: w + 3, but having differing attractionbehaviors makes things go crazy
 
     // HANDY STUFF:
     HR = HandyPresets.createMarker(pa); //new HandyRenderer(this);
@@ -72,13 +74,13 @@ class Node extends VerletParticle2D {
         k += 1;
       }
     }
-    
-      words = "";
-      for (int i=0; i<letters.size(); i+=1) {  // build up words String out of letters StringList
-        words += letters.get(i);
-      }
-      
-      if (letters.size()>0) {
+
+    words = "";
+    for (int i=0; i<letters.size(); i+=1) {  // build up words String out of letters StringList
+      words += letters.get(i);
+    }
+
+    if (letters.size()>0) {
 
       w = textWidth(words) + 5;    // resizes width of node and text area
 
@@ -98,33 +100,37 @@ class Node extends VerletParticle2D {
     } else {
       w = 70;
       h = 30;
-    }    
-  }
-  
-    //void findAdjacentNodes(VerletParticle2D n, Table t, ArrayList<Node> candidates) {  //input connectorData table, and nodes arraylist
-  void findAdjacentNodes(int i, Table t) {  //input current node index, connectorData table
-    //for (int i = 0; i < t.getRowCount(); i++){
-    //  TableRow row = t.getRow(i);
-    //}
-    //for (int i = candidates.size()-1; i >= 0; i--) {    // goes through all nodes
-    int numConnections = 0;
-    connections.clear();
-    for (TableRow row : t.findRows(str(i), "starting node index")) {    // finds rows with starting node index i
-      numConnections++;
-      println(row.getString("starting node index") + " connects to " + row.getString("ending node index"));
-      connections.append(int(row.getString("ending node index")));    // compiles list of nodes to which this node is connected
-      // want to add verlet particle connection to each node connection
     }
-    if (numConnections == 2) {
-      connectionMode = "AVERAGE_GRADIENT";
-    }
-    if (numConnections > 2) {
-      connectionMode = "FORCE_CONNECTED";
-    }
-    //}
   }
 
-  boolean mouseOver(float tempx, float tempy) {
+  void findAdjacentNodes(int i, Table t) {  //input current node index, connectorData table
+    //int numConnections = 0;
+    connections.clear();
+    //String lastIndex = "";
+    for (TableRow row : t.findRows(str(i), "starting node index")) {    // finds rows with starting node index i
+      if (int(row.getString("starting node index")) != int(row.getString("ending node index"))) {
+        //println("START: " + row.getString("starting node index"));
+        //println("END: " + row.getString("ending node index"));
+        //if (row.getString("ending node index") != lastIndex) {
+        //numConnections++;
+        //println(row.getString("starting node index") + " connects to " + row.getString("ending node index"));
+        connections.append(int(row.getString("ending node index")));    // compiles list of nodes to which this node is connected
+        // want to add verlet particle connection to each node connection
+        //}
+        //lastIndex = row.getString("ending node index");
+      }
+    }
+    for (TableRow row : t.findRows(str(i), "ending node index")) {    // finds rows with starting node index i
+      if (int(row.getString("starting node index")) != int(row.getString("ending node index")))  {
+        //println(row.getString("ending node index") + " connects to " + row.getString("starting node index"));
+        connections.append(int(row.getString("starting node index")));    // compiles list of nodes to which this node is connected
+        println(row.getString("ending node index") + " connects to " + row.getString("starting node index"));
+        //println(connectors.size());
+      }
+    }
+  }
+
+  boolean mouseOver(float tempx, float tempy) {    //tempx and tempy are the centre of the node (could just remove these args)
     if ((pmouseX >= tempx - w/2)&&(pmouseX <= tempx + w/2) && 
       (pmouseY >= tempy - h/2)&&(pmouseY <= tempy + h/2)) {
       highlighted = true;

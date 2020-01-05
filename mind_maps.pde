@@ -13,8 +13,8 @@ float rectW = 70, rectH = 30;
 float xAnchor, yAnchor;
 String MODE = "PLACING_NODES"; // "NODE_SELECTED";
 boolean overNode = false, nodeSelected = false, nodeMoved = false, drawing = false, sketchy = false, textLoaded = false, dragging = false;
-Node selectedNode, someNode, startNode, endNode;
-int sn, en;//startNodeIndex, endNodeIndex;
+Node selectedNode, someNode, sn, en; //startNode, endNode;
+int sni, eni;//startNodeIndex, endNodeIndex;
 int maxWidth = 800, maxHeight = 600;
 Menu m;
 
@@ -31,7 +31,7 @@ void setup() {
   m = new Menu();    // Creates new menu
 
   physics = new VerletPhysics2D();
-  physics.setDrag (1); //0.025  
+  physics.setDrag (0.04); //1, 0.025  
 
   nodes = new ArrayList<Node>();
   connectors = new ArrayList<Connector>();
@@ -58,7 +58,7 @@ void draw() {
   }
 
   if (!m.showingMenu) {
-    physics.setWorldBounds(new Rect(0, 0, maxWidth - 5, maxHeight - 5));  // should never shrink physics world bounds    
+    physics.setWorldBounds(new Rect(0, 0, maxWidth - 5, maxHeight - 5));  // should never shrink physics world bounds!   
 
     try {
       physics.update ();    // common error is having a null particle
@@ -93,7 +93,11 @@ void draw() {
     }
   }
 
-  for (Connector c : connectors) {  // for every connector in the arrayList connectors,
+  for (Connector c : connectors) {  // for every connector in the arrayList connectors,   
+    //if (c.mouseOver()){
+    //  println("over a connector!");
+    //}
+    c.mouseOver();
     c.display();         // display the connector
   }
 
@@ -104,6 +108,9 @@ void draw() {
   // updates and displays menu:
   m.move(width, height);
   m.display();
+
+  //println("YES is " + m.yesButton.isOver);    // (prints for debugging)
+  //println("NO is " + m.noButton.isOver);
 }
 
 
@@ -118,27 +125,34 @@ void mouseClicked() {
       if (m.saveButton.isOver) {
         m.menuMode = "SAVE";
         m.previousMode = "MAIN";
+        m.saveButton.isOver = false;
       }
       if (m.loadButton.isOver) {
         m.menuMode = "LOAD";
         m.previousMode = "MAIN";
+        m.loadButton.isOver = false;
       }
       if (m.newButton.isOver) {
         m.menuMode = "NEW";
         m.previousMode = "MAIN";
+        m.newButton.isOver = false;
       }
     } else if (m.menuMode=="SAVE") {      // SAVE MENU CONTROLS
       if (m.yesButton.isOver) {
         m.filename = m.t1.text;
         // save file
-        //menuMode = "END";
+        saveData(m.filename);
+        // close menu
         m.showingMenu = false;
         m.menuMode = "MAIN";
+        m.yesButton.isOver = false;
       }
       if (m.noButton.isOver) {
         m.filename = m.t1.text;
+        // go back to typing
         m.t1.doneTyping = false;
         m.previousMode = "SAVE";
+        m.noButton.isOver = false;
       }
       if ((m.backButton.isOver)) {
         println("entering back if statement");
@@ -148,6 +162,7 @@ void mouseClicked() {
     } else if (m.menuMode=="LOAD") {      // LOAD MENU CONTROLS
       if (m.folderButton.isOver) {
         selectFolder("Select a folder to process:", "folderSelected");
+        m.folderButton.isOver = false;
       }
       if (m.yesButton.isOver) {
         m.filename = m.t2.text;
@@ -165,16 +180,19 @@ void mouseClicked() {
         // menuMode = "END";
         m.menuMode = "MAIN";
         m.showingMenu = false;
+        m.yesButton.isOver = false;
       }
       if (m.noButton.isOver) {
         m.filename = m.t2.text;
         m.t2.doneTyping = false;
         m.previousMode = "SAVE";
+        m.noButton.isOver = false;
       }
-      if ((m.backButton.isOver)) {
+      if (m.backButton.isOver) {
         println("entering back if statement");      
         m.t2.doneTyping = false;
         m.menuMode = "MAIN";
+        m.backButton.isOver = false;
       }
     } else if (m.menuMode=="NEW") {      // NEW MENU CONTROLS
       if (m.yesButton.isOver) {
@@ -183,23 +201,35 @@ void mouseClicked() {
         // reset current work  
         m.menuMode = "MAIN";
         m.showingMenu = false;
+        m.yesButton.isOver = false;
       }
       if (m.noButton.isOver) {
         m.filename = m.t2.text;
         m.menuMode = "MAIN";
+        m.noButton.isOver = false;
       }
-      if ((m.backButton.isOver)) {
+      if (m.backButton.isOver) {
         println("entering back if statement");
         m.menuMode = "MAIN";
+        m.backButton.isOver = false;
       }
     }
   } else {
     if (mouseButton == LEFT) {
       //println(nodes.size());
       if (!overNode) {
-        //MODE = "PLACING_NODES";
-        nodeSelected = false;
-        nodes.add(new Node(mouse, rectW, rectH, this));    // ADD a new NODE    //edited this to use mouse Vec2D
+        if (nodeSelected) {    // don't want to add nodes if a node is selected. Want to deselect current node.
+          nodeSelected = false;
+          for (Node n : nodes) {
+            //MODE = "NODE_DESELECTED";
+            n.selected = false; //true;
+            nodeSelected = nodeSelected||(n.selected);
+          }
+        } else { // may not need an else
+          //MODE = "PLACING_NODES";
+          nodeSelected = false;
+          nodes.add(new Node(mouse, rectW, rectH, this));    // ADD a new NODE    //edited this to use mouse Vec2D
+        }
       } else {
         nodeSelected = false;
         for (Node n : nodes) {
@@ -214,50 +244,79 @@ void mouseClicked() {
         }
       }
     }
-    //println(nodeSelected);
+  }
+}
 
-    if ((mouseButton == RIGHT)&&(nodes.size()>0)) {
-      xAnchor = mouseX;
-      yAnchor = mouseY;
-      TableRow row = connectorData.addRow();
+void mouseReleased() {
+  if ((mouseButton == RIGHT)&&(nodes.size()>0)&&(!m.showingMenu)&&(overNode)) {
+    xAnchor = mouseX;
+    yAnchor = mouseY;
+    TableRow row = connectorData.addRow();
 
+    if (!drawing) {
+      drawing = true;
+      connectors.add(new Connector(new VerletParticle2D(xAnchor, yAnchor), new VerletParticle2D(xAnchor, yAnchor)));        // ADD a new CONNECTOR
+      //startNode = connectors.get(connectors.size()-1).findClosestNode(nodes, new VerletParticle2D(xAnchor, yAnchor), false);       // find closest node 
+      connectors.get(connectors.size()-1).startNode = connectors.get(connectors.size()-1).findClosestNode(nodes, new VerletParticle2D(xAnchor, yAnchor), false);       // find closest node //startNode;    // set connector startNode
+      sn = connectors.get(connectors.size()-1).startNode;
+      println(sn);
 
-      if (!drawing) {
-        drawing = true;
-        connectors.add(new Connector(new VerletParticle2D(xAnchor, yAnchor), new VerletParticle2D(xAnchor, yAnchor)));    // ADD a new CONNECTOR
-        startNode = connectors.get(connectors.size()-1).findClosestNode(nodes, new VerletParticle2D(xAnchor, yAnchor));       // find closest node 
-        connectors.get(connectors.size()-1).startNodeIndex = connectors.get(connectors.size()-1).getClosestIndex(nodes, new VerletParticle2D(xAnchor, yAnchor));       // return closest node index
-        sn = connectors.get(connectors.size()-1).startNodeIndex;
-        row = connectorData.getRow(connectors.size()-1);
-        row.setInt("starting node index", connectors.get(connectors.size()-1).startNodeIndex);
-        println("Start node index is " + connectors.get(connectors.size()-1).startNodeIndex);
-        connectors.set(connectors.size()-1, new Connector(startNode, startNode));  // set closest node as new starting node (for this connection)
-      } else {
-        row = connectorData.getRow(connectors.size()-1);
-        drawing = false;
-        endNode = connectors.get(connectors.size()-1).findClosestNode(nodes, new VerletParticle2D(xAnchor, yAnchor));       // find closest node
-        connectors.get(connectors.size()-1).endNodeIndex = connectors.get(connectors.size()-1).getClosestIndex(nodes, new VerletParticle2D(xAnchor, yAnchor));       // return closest node index
-        en = connectors.get(connectors.size()-1).endNodeIndex;
-        row.setInt("ending node index", connectors.get(connectors.size()-1).endNodeIndex);
-        println("End node index is " + connectors.get(connectors.size()-1).endNodeIndex);
-        connectors.get(connectors.size()-1).setEndpoint(endNode, endNode);          // set closest node as end node (for this connection)
-        connectors.get(connectors.size()-1).connect(startNode, endNode, -15);            // connect the nodes together with a verletSpring
-        Connector c = connectors.get(connectors.size()-1);
+      connectors.get(connectors.size()-1).startNodeIndex = connectors.get(connectors.size()-1).getClosestIndex(nodes, new VerletParticle2D(xAnchor, yAnchor));       // return closest node index
+      sni = connectors.get(connectors.size()-1).startNodeIndex;
+      //connectors.get(connectors.size()-1).startNode = nodes.get(sn);    // set connector startNode
+      row = connectorData.getRow(connectors.size()-1);
+      row.setInt("starting node index", connectors.get(connectors.size()-1).startNodeIndex);
+      println("Start node index is " + connectors.get(connectors.size()-1).startNodeIndex);
+      connectors.set(connectors.size()-1, new Connector(connectors.get(connectors.size()-1).startNode, connectors.get(connectors.size()-1).startNode));  // set closest node as new starting node (for this connection)
+    } else {
+      row = connectorData.getRow(connectors.size()-1);
+      drawing = false;
+      //endNode = connectors.get(connectors.size()-1).findClosestNode(nodes, new VerletParticle2D(xAnchor, yAnchor), true);       // find closest node
+      connectors.get(connectors.size()-1).endNode = connectors.get(connectors.size()-1).findClosestNode(nodes, new VerletParticle2D(xAnchor, yAnchor), true);//endNode;  // set connector endNode
+      en = connectors.get(connectors.size()-1).endNode;
+      println(en);
 
-        if (connectors.size()>1) {
-          for (int i = connectors.size() - 2; i >= 0; i--) {                           // this loop removes duplicate connectors, but it doesn't quite work...
-            if ((connectors.get(i).curveBegin == c.curveBegin)&&(connectors.get(i).curveEnd == c.curveEnd)) {
-              connectors.remove(i);
-              //println("DELETING A CONNECTOR");
-            }
+      connectors.get(connectors.size()-1).endNodeIndex = connectors.get(connectors.size()-1).getClosestIndex(nodes, new VerletParticle2D(xAnchor, yAnchor));       // return closest node index
+      eni = connectors.get(connectors.size()-1).endNodeIndex;
+      //connectors.get(connectors.size()-1).endNode = nodes.get(en);  // set connector endNode
+      row.setInt("ending node index", connectors.get(connectors.size()-1).endNodeIndex);
+      //println("End node index is " + connectors.get(connectors.size()-1).endNodeIndex);
+      connectors.get(connectors.size()-1).setEndpoint(connectors.get(connectors.size()-1).endNode, connectors.get(connectors.size()-1).endNode);          // set closest node as end node (for this connection)
+
+      connectors.get(connectors.size()-1).connect(sn, en, -15);            // connect the nodes together with a verletSpring
+      Connector c = connectors.get(connectors.size()-1);                   // c is the last connection in the connectors ArrayList
+
+      //println("c.curveBegin is ......." + c.curveBegin + ", and c.curveEnd is ......." + c.curveEnd);
+      // Delete duplicate connectors:
+      if (connectors.size()>1) {
+        for (int i = connectors.size() - 2; i >= 0; i--) {                           // this loop removes duplicate connectors, but it doesn't quite work...?
+          //println("INITIAL CONNECTORS SIZE: " + connectors.size());
+          println("connectors.get(i).curveBegin is ......." + connectors.get(i).curveBegin + ", and connectors.get(i).curveEnd is ......." + connectors.get(i).curveEnd);
+          if (((connectors.get(i).curveBegin == c.curveBegin)&&(connectors.get(i).curveEnd == c.curveEnd))
+            ||((connectors.get(i).curveBegin == c.curveEnd)&&(connectors.get(i).curveEnd == c.curveBegin))) {
+            //delete connector from list and physics world:
+            connectors.get(i).delete();  // not even sure if this is necessary
+            connectors.remove(i);        // removes connector from arraylist
+
+            //delete connector i from table:
+            connectorData.removeRow(i);
+
+            println("DELETING A CONNECTOR");
           }
+          //println("FINAL CONNECTORS SIZE: " + connectors.size());
         }
+      }
+
+      // Update 'connections' list for each node
+      for (int i = 0; i < nodes.size(); i++) {
+        nodes.get(i).findAdjacentNodes(i, connectorData);
       }
     }
   }
 }
 
 void keyTyped() {
+  // type in menu text boxes
   if (m.showingMenu) {
     if (m.menuMode == "SAVE") {
       m.t1.addText(m.t1.doneTyping);
@@ -265,10 +324,7 @@ void keyTyped() {
       m.t2.addText(m.t2.doneTyping);
     }
   } else {
-    //if (key == CONTROL) {
-    //  println("starting node: " + sn);    
-    //  println("ending node: " + en);
-    //}
+    // type in node text areas
     textSize(20);
     for (int i = 0; i < nodes.size(); i++) {    // goes through all the nodes
       nodes.get(i).addText(nodes.get(i).selected);     // add text to selected node
@@ -284,9 +340,47 @@ void keyPressed() {
     }
     m.showingMenu = !m.showingMenu;
   }
-  if ((keyCode == CONTROL)&&(key == 's')) {
-    saveData("test");
+  if (((key == BACKSPACE)||(key == DELETE))&&(overNode)) {      // FIX: when all nodes are deleted, can't add new nodes. Why?
+    // Find and delete node:
+    if (nodes.size() > 0) {
+      for (int i = nodes.size() - 1; i >= 0; i--) {      // for all nodes
+        if (nodes.get(i).mouseOver(nodes.get(i).x, nodes.get(i).y)) {  // find the specific node that is moused over     
+          println("Initial connections list is: " + nodes.get(i).connections);  // show connections to this node
+
+          //Delete ALL attached connections:
+          for (int c = nodes.get(i).connections.size() - 1; c >= 0; c--) {    // for all connections to this node
+            println("i is " + i);
+            println("c is " + c);
+            println("connectors size is: " + connectors.size());
+            
+            // for each node connections.get(c) in connections, delete all connectors going from node i to ni:
+            connectors.get(nodes.get(i).connections.get(c)).delete(nodes.get(i));  // (deletes physics particles and springs for this node)
+            //connectors.get(nodes.get(i).connections.get(c)).delete(nodes.get(i));  // (deletes physics particles and springs for this node)
+            connectors.remove(nodes.get(i).connections.get(c));        // removes the cth connector
+            nodes.get(i).connections.remove(c);
+            println("connectors size is: " + connectors.size());    // should be 0 at the end!
+          }
+          nodes.get(i).findAdjacentNodes(i, connectorData);            // update connections list for this node. This is probably pointless since I'm just removing the node in the next line
+          println("Final connections list is: " + nodes.get(i).connections);  // show connections to this node
+          nodes.remove(i);                                             // removes this node
+          //println("nodes list is: " + nodes);
+        }
+      }
+    }
+    // Find and delete connector:
+    //if (connectors.size() > 0) {
+    //  for (int i = connectors.size() - 1; i >= 0; i--) {  
+    //    if (nodes.get(i).mouseOver(nodes.get(i).x, nodes.get(i).y)) {  // find the specific node that is moused over          
+    //      nodes.remove(i);            // delete this node
+    //      //println("nodes size is " + nodes.size());
+    //      //nodes.get(i).connections
+    //    }
+    //  }
+    //}
   }
+  //if ((keyCode == CONTROL)&&(key == 's')) {
+  //  saveData("test");
+  //}
 }
 
 void saveData(String filename) {
@@ -300,15 +394,6 @@ void saveData(String filename) {
     row.setString("words", nodes.get(i).words);    // maybe just using StringList 'letters' as is would work too?
   }
   saveTable(nodeData, filename + "/nodeData.csv");
-
-  //connectorData.clearRows();                         // resets table
-  //for (int i = 0; i < connectors.size(); i++) {        // fills rows of table
-  //  TableRow row = connectorData.getRow(i);
-  //  //row.setString("# row number", "#" + i+1);        // this is useless atm...
-  //  //println("starting nodes....." + connectors.get(i).startNodeIndex);
-  //  //  row.setInt("ending node index", connectors.get(i).endNodeIndex);
-  //  //println("ending nodes....." + connectors.get(i).endNodeIndex);
-  //}
   saveTable(connectorData, filename + "/connectorData.csv");
 }
 
@@ -334,6 +419,7 @@ void loadData(String filename) {
     if (x > 0) { // this makes sure blank rows aren't being turned into nodes (checks validity of x position)
       nodes.add(new Node(new Vec2D(x, y), w, h, this));    // ADD a new NODE
       nodes.get(i).k = t.length();
+      nodes.get(i).letters.clear();
       for (int c = 0; c < t.length(); c++) {
         nodes.get(i).letters.append(str(t.charAt(c)));      // fills the letters ArrayList
       }
@@ -376,10 +462,11 @@ void folderSelected(File selection) {
     if (match != null) {
       m.filename = match[0];
       println("match found is: " + m.filename);
-    } else {
-      m.filename = m.t2.text;
-      println("No match found...");
-    }   
+    }
+    //else {
+    //  m.filename = m.t2.text;
+    //  println("No match found...");
+    //}
     m.t2.text = m.filename;        // sets textbox text to file path
     m.t2.k = m.t2.text.length();   // sets number of characters in letters arraylist
     m.t2.letters.clear();
@@ -388,12 +475,3 @@ void folderSelected(File selection) {
     }
   }
 }
-
-//void keyPressed() {
-//  if (key == BACKSPACE) {
-//    if (nodes.size() > 0) {
-//      println(nodes.get(nodes.size() - 1));
-//      nodes.remove(nodes.size() - 1);
-//    }
-//  }
-//}
