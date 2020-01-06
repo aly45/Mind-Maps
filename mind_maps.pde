@@ -289,36 +289,44 @@ void mouseReleased() {
       // Delete duplicate connectors:
       if (connectors.size()>1) {
         for (int i = connectors.size() - 2; i >= 0; i--) {                           // this loop removes duplicate connectors
+        //if (c.curveBegin != c.curveEnd) {
           //println("INITIAL CONNECTORS SIZE: " + connectors.size());
           //println("connectors.get(i).curveBegin is ......." + connectors.get(i).curveBegin + ", and connectors.get(i).curveEnd is ......." + connectors.get(i).curveEnd);
           if (((connectors.get(i).curveBegin == c.curveBegin)&&(connectors.get(i).curveEnd == c.curveEnd))
             ||((connectors.get(i).curveBegin == c.curveEnd)&&(connectors.get(i).curveEnd == c.curveBegin))) {
             //delete connector from list and physics world:
-            connectors.get(i).delete();  // not even sure if this is necessary, or if it even works
-            connectors.remove(i);        // removes connector from arraylist
+            //connectors.get(i).delete();  // not even sure if this is necessary, or if it even works
 
-            //delete connector i from table:
-            connectorData.removeRow(i);
+            
+              println("curveBegin = " + connectors.get(i).curveBegin);
+              println("curveEnd = " + connectors.get(i).curveEnd);
 
-            println("DELETED A CONNECTOR");
-          }
+              connectors.remove(i);        // removes connector from arraylist
+
+              //delete connector i from table:
+              connectorData.removeRow(i);            
+
+              println("DELETED A CONNECTOR");
+            }
+          //}
           //println("FINAL CONNECTORS SIZE: " + connectors.size());
         }
       }
 
-      // Deletes connectors connecting a node to itself
+       //Deletes connectors connecting a node to itself
       if (connectors.size()>1) {
-        //println("INITIAL CONNECTORS SIZE: " + connectors.size());
+        println("INITIAL CONNECTORS SIZE: " + connectors.size());
         if (connectors.get(connectors.size()-1).curveBegin == connectors.get(connectors.size()-1).curveEnd) {
           //delete connector from list and physics world:
-          connectors.get(connectors.size()-1).delete();  // not even sure if this is necessary, or if it even works
+          //connectors.get(connectors.size()-1).delete();  // not even sure if this is necessary, or if it even works
           connectors.remove(connectors.size()-1);        // removes connector from arraylist
 
           //delete connector i from table:
-          connectorData.removeRow(connectors.size()-1);  // should maybe use connectorData.getRowCount() here instead
+          connectorData.removeRow(connectorData.getRowCount() - 1);  // should maybe use connectorData.getRowCount() here instead
 
           println("DELETED A CONNECTOR");
         }
+        println("FINAL CONNECTORS SIZE: " + connectors.size());
       }
 
       // Update 'connections' list for each node
@@ -373,6 +381,7 @@ void keyPressed() {
   }
   if (key == 'a') {
     for (int i = 0; i <= nodes.size() - 1; i++) {
+      nodes.get(i).findAdjacentNodes(i, connectorData);
       println("\n node " + i + " is connected to nodes:");
       for (int j = 0; j <= nodes.get(i).connections.size() - 1; j++) {
         println(nodes.get(i).connections.get(j));
@@ -420,18 +429,25 @@ void keyPressed() {
           nodes.get(i).findAdjacentNodes(i, connectorData);            // update connections list for this node. This is probably pointless since I'm just removing the node in the next line
           println("Final connections list is: " + nodes.get(i).connections);  // show connections to this node
 
-          nodes.remove(i);                                             // removes the moused over node
+          if (nodeData.getRowCount() > 0){
+          //nodes.remove(i);                                             // removes the moused over node
+          //delete row i from nodes table:
+          nodeData.removeRow(i);      // depending on how table ordering is done, this may not work (?)
+          }
 
           // Need to shift down all indexes > the index of the node just deleted:
+
           for (int n = nodes.size() - 1; n >= 0; n--) {        //n
+            boolean mainNodeDeleted = false;
             println("node " + n + " is connected to: ");
             for (int index = nodes.get(n).connections.size() - 1; index >= 0; index--) {    //index
-              println("node " + nodes.get(n).connections.get(index));                  // + which becomes")
+              print("\n...node " + nodes.get(n).connections.get(index));                  // + which becomes")
 
               //remove deleted index from connections
-              if (nodes.get(n).connections.get(index) == i) {
+              if ((nodes.get(n).connections.get(index) == i)&&(!mainNodeDeleted)) {
                 nodes.get(n).connections.remove(index); // removes the 'index'th connection of the nth node
-                println("which gets deleted");
+                println(", which gets deleted.");
+                mainNodeDeleted = true;
               }
               //shift all down by 1
               //println("nodes size is now..." + nodes.size());
@@ -439,22 +455,23 @@ void keyPressed() {
               //println(nodes.get(n).connections.get(index));
 
               //try {
-                if ((nodes.get(n).connections.size() != index)&&(nodes.get(n).connections.get(index) > i)) {
-                  nodes.get(n).connections.set(index, nodes.get(n).connections.get(index) - 1);
-                  println("which becomes node " + nodes.get(n).connections.get(index));
-                }
+              if ((nodes.get(n).connections.size() != index)&&(nodes.get(n).connections.get(index) > i)) {
+                nodes.get(n).connections.set(index, nodes.get(n).connections.get(index) - 1);
+                println(", which becomes node " + nodes.get(n).connections.get(index));
+              }
               //} 
               //catch (ArrayIndexOutOfBoundsException e) {
               //  println(e);
               //  println("connections size is now..." + nodes.get(n).connections.size());
               //  println("trying to access index: " + index);
               //}
-              
+
               //nodes.remove(i);                                             // removes the moused over node
             }
           }
 
           //println("nodes list is: " + nodes);
+          nodes.remove(i);                                             // removes the moused over node
         }
       }
     }
@@ -489,11 +506,11 @@ void saveData(String filename) {
 }
 
 void loadData(String filename) {        // FIX: loading a file when nodes/connectors are already present, results in strange things...
-  
+
   nodes.clear();             // clear the nodes ArrayList
   connectors.clear();             // clear the connectors ArrayList
   physics.clear();
-  
+
   // LOAD NODES
   nodeData = loadTable(filename + "/nodeData.csv", "header");
   //connectorData = loadTable(filename + "/connectorData.csv", "header");

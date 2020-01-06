@@ -111,31 +111,29 @@ class Node extends VerletParticle2D {
     for (TableRow row : t.findRows(str(i), "starting node index")) {    // finds rows with starting node index i
       connectors.get(rowNum).startNodeIndex = int(row.getString("starting node index"));
       connectors.get(rowNum).endNodeIndex = int(row.getString("ending node index"));
-      if (int(row.getString("starting node index")) != int(row.getString("ending node index"))) {
-        //println("START: " + row.getString("starting node index"));
-        //println("END: " + row.getString("ending node index"));
-        //if (row.getString("ending node index") != lastIndex) {
-        //numConnections++;
-        //println(row.getString("starting node index") + " connects to " + row.getString("ending node index"));
+      if ((int(row.getString("starting node index")) != int(row.getString("ending node index")))&&(!connections.hasValue(int(row.getString("ending node index"))))) {
         connections.append(int(row.getString("ending node index")));    // compiles list of nodes to which this node is connected
-        // want to add verlet particle connection to each node connection
-        //}
-        //lastIndex = row.getString("ending node index");
       }
       rowNum++;
     }
     rowNum = 0;
+    //println(t.getRowCount() + " rows");
     for (TableRow row : t.findRows(str(i), "ending node index")) {    // finds rows with starting node index i
+      //println(connectors.size());
+      
       connectors.get(rowNum).startNodeIndex = int(row.getString("starting node index"));
       connectors.get(rowNum).endNodeIndex = int(row.getString("ending node index"));
-      if (int(row.getString("starting node index")) != int(row.getString("ending node index"))) {
-        //println(row.getString("ending node index") + " connects to " + row.getString("starting node index"));
+      if ((int(row.getString("starting node index")) != int(row.getString("ending node index")))&&(!connections.hasValue(int(row.getString("starting node index"))))) {
         connections.append(int(row.getString("starting node index")));    // compiles list of nodes to which this node is connected
-        println(row.getString("ending node index") + " connects to " + row.getString("starting node index"));
-        //println(connectors.size());
+        //println(row.getString("ending node index") + " connects to " + row.getString("starting node index"));
       }
       rowNum++;
     }
+    //int duplicates = 0;
+    //for (int i = connections.size() - 1; i >= 0; i--){
+    //  for (int j = connections.size() - 1; j >= 0; j--){
+    //  if (
+    //}
   }
 
   boolean mouseOver(float tempx, float tempy) {    //tempx and tempy are the centre of the node (could just remove these args)
