@@ -148,8 +148,10 @@ class Connector {
     if ((n == startNode)||(n == endNode)) {  //checks if n is actually a starting or ending node for this connection
       println("Deleting connection between startNode " + startNode + " and endNode " + endNode);
       // deletes all virtual particles in this connection
-      physics.removeParticle(n);  // delete node particle
-      physics.removeBehavior(n.a);
+      if (n != null) {
+        physics.removeParticle(n);  // delete node particle
+        physics.removeBehavior(n.a);
+      }
 
       physics.removeBehavior(a1);
       physics.removeParticle(v1);

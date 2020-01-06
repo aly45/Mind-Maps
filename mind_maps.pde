@@ -113,7 +113,6 @@ void draw() {
   //println("NO is " + m.noButton.isOver);
 }
 
-
 void mouseClicked() {
   //if ((mouseX==pmouseX)&&(mouseY==pmouseY)) { // stay still!  -- only need this if using mouseRelased() ?
 
@@ -251,9 +250,9 @@ void mouseReleased() {
   if ((mouseButton == RIGHT)&&(nodes.size()>0)&&(!m.showingMenu)&&(overNode)) {
     xAnchor = mouseX;
     yAnchor = mouseY;
-    TableRow row = connectorData.addRow();
 
     if (!drawing) {
+      TableRow row = connectorData.addRow();
       drawing = true;
       connectors.add(new Connector(new VerletParticle2D(xAnchor, yAnchor), new VerletParticle2D(xAnchor, yAnchor)));        // ADD a new CONNECTOR
       //startNode = connectors.get(connectors.size()-1).findClosestNode(nodes, new VerletParticle2D(xAnchor, yAnchor), false);       // find closest node 
@@ -269,7 +268,7 @@ void mouseReleased() {
       println("Start node index is " + connectors.get(connectors.size()-1).startNodeIndex);
       connectors.set(connectors.size()-1, new Connector(connectors.get(connectors.size()-1).startNode, connectors.get(connectors.size()-1).startNode));  // set closest node as new starting node (for this connection)
     } else {
-      row = connectorData.getRow(connectors.size()-1);
+      TableRow row = connectorData.getRow(connectors.size()-1);
       drawing = false;
       //endNode = connectors.get(connectors.size()-1).findClosestNode(nodes, new VerletParticle2D(xAnchor, yAnchor), true);       // find closest node
       connectors.get(connectors.size()-1).endNode = connectors.get(connectors.size()-1).findClosestNode(nodes, new VerletParticle2D(xAnchor, yAnchor), true);//endNode;  // set connector endNode
@@ -289,7 +288,7 @@ void mouseReleased() {
       //println("c.curveBegin is ......." + c.curveBegin + ", and c.curveEnd is ......." + c.curveEnd);
       // Delete duplicate connectors:
       if (connectors.size()>1) {
-        for (int i = connectors.size() - 2; i >= 0; i--) {                           // this loop removes duplicate connectors, but it doesn't quite work...?
+        for (int i = connectors.size() - 2; i >= 0; i--) {                           // this loop removes duplicate connectors
           //println("INITIAL CONNECTORS SIZE: " + connectors.size());
           println("connectors.get(i).curveBegin is ......." + connectors.get(i).curveBegin + ", and connectors.get(i).curveEnd is ......." + connectors.get(i).curveEnd);
           if (((connectors.get(i).curveBegin == c.curveBegin)&&(connectors.get(i).curveEnd == c.curveEnd))
@@ -301,7 +300,7 @@ void mouseReleased() {
             //delete connector i from table:
             connectorData.removeRow(i);
 
-            println("DELETING A CONNECTOR");
+            println("DELETED A CONNECTOR");
           }
           //println("FINAL CONNECTORS SIZE: " + connectors.size());
         }
@@ -311,7 +310,24 @@ void mouseReleased() {
       for (int i = 0; i < nodes.size(); i++) {
         nodes.get(i).findAdjacentNodes(i, connectorData);
       }
+
+      // Update startNodeIndex and endNodeIndex for each connector
+      if (connectorData.getRowCount() > 0) {
+        updateConnectedNodes(connectorData);
+      }
     }
+  }
+}
+
+void updateConnectedNodes(Table t) {  //input connectorData table
+  int rowNum = 0;
+  //println("***connectors size is____ " + connectors.size());
+  //println("*** number of rows in connectorData is____ " + t.getRowCount());
+  for (TableRow row : t.rows()) {          // for all rows in t
+    //println("***table row " + rowNum + " is " + t.getRow(rowNum));    
+    connectors.get(rowNum).startNodeIndex = int(row.getString("starting node index"));      // does .get().startNodeIndex actually set startNodeIndex?
+    connectors.get(rowNum).endNodeIndex = int(row.getString("ending node index"));
+    rowNum++;
   }
 }
 
@@ -340,7 +356,7 @@ void keyPressed() {
     }
     m.showingMenu = !m.showingMenu;
   }
-  if (((key == BACKSPACE)||(key == DELETE))&&(overNode)) {      // FIX: when all nodes are deleted, can't add new nodes. Why?
+  if (((key == BACKSPACE)||(key == DELETE))&&(overNode)) {      // FIX: when all nodes are deleted, can't add new nodes. Why? //<>//
     // Find and delete node:
     if (nodes.size() > 0) {
       for (int i = nodes.size() - 1; i >= 0; i--) {      // for all nodes
@@ -350,14 +366,21 @@ void keyPressed() {
           //Delete ALL attached connections:
           for (int c = nodes.get(i).connections.size() - 1; c >= 0; c--) {    // for all connections to this node
             println("i is " + i);
+            println("connections size is: " + nodes.get(i).connections.size());
             println("c is " + c);
             println("connectors size is: " + connectors.size());
-            
+
             // for each node connections.get(c) in connections, delete all connectors going from node i to ni:
-            connectors.get(nodes.get(i).connections.get(c)).delete(nodes.get(i));  // (deletes physics particles and springs for this node)
-            //connectors.get(nodes.get(i).connections.get(c)).delete(nodes.get(i));  // (deletes physics particles and springs for this node)
-            connectors.remove(nodes.get(i).connections.get(c));        // removes the cth connector
-            nodes.get(i).connections.remove(c);
+            for (int j = connectors.size() - 1; j >= 0; j--) {                // for all connectors,
+              println("The startNodeIndex of the " + j + "th connector is " + connectors.get(j).startNodeIndex);
+              println("The endNodeIndex of the " + j + "th connector is " + connectors.get(j).endNodeIndex);
+              if ((connectors.get(j).startNodeIndex == nodes.get(i).connections.get(c))||(connectors.get(j).endNodeIndex == nodes.get(i).connections.get(c))) {  //if the startNodeIndex or endNodeIndex of the jth connector matches the cth element of connections,
+                connectors.get(j).delete(nodes.get(i));                                   // (delete physics particles and springs for this node) i is the node index moused over, nodes.get(i) is the node, connectors.get(j) is the jth connector
+                //connectors.get(nodes.get(i).connections.get(c)).delete(nodes.get(i));   // (delete physics particles and springs for this node)
+                connectors.remove(nodes.get(i).connections.get(c)); // removes the jth connector if its startNode or endNode matches the cth element of connections
+              }
+            }
+            nodes.get(i).connections.remove(c); // removes the cth connection of the ith node
             println("connectors size is: " + connectors.size());    // should be 0 at the end!
           }
           nodes.get(i).findAdjacentNodes(i, connectorData);            // update connections list for this node. This is probably pointless since I'm just removing the node in the next line
