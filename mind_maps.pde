@@ -1,4 +1,4 @@
-import toxi.geom.*;
+import toxi.geom.*; //<>//
 import toxi.physics2d.*;
 import toxi.physics2d.behaviors.*;
 import org.gicentre.handy.*;
@@ -65,7 +65,7 @@ void draw() {
     } 
     catch (NullPointerException e) {
       println(someNode);
-      exit();
+      //exit();
     }
 
     mouse = new Vec2D(mouseX, mouseY);
@@ -290,11 +290,11 @@ void mouseReleased() {
       if (connectors.size()>1) {
         for (int i = connectors.size() - 2; i >= 0; i--) {                           // this loop removes duplicate connectors
           //println("INITIAL CONNECTORS SIZE: " + connectors.size());
-          println("connectors.get(i).curveBegin is ......." + connectors.get(i).curveBegin + ", and connectors.get(i).curveEnd is ......." + connectors.get(i).curveEnd);
+          //println("connectors.get(i).curveBegin is ......." + connectors.get(i).curveBegin + ", and connectors.get(i).curveEnd is ......." + connectors.get(i).curveEnd);
           if (((connectors.get(i).curveBegin == c.curveBegin)&&(connectors.get(i).curveEnd == c.curveEnd))
             ||((connectors.get(i).curveBegin == c.curveEnd)&&(connectors.get(i).curveEnd == c.curveBegin))) {
             //delete connector from list and physics world:
-            connectors.get(i).delete();  // not even sure if this is necessary
+            connectors.get(i).delete();  // not even sure if this is necessary, or if it even works
             connectors.remove(i);        // removes connector from arraylist
 
             //delete connector i from table:
@@ -303,6 +303,21 @@ void mouseReleased() {
             println("DELETED A CONNECTOR");
           }
           //println("FINAL CONNECTORS SIZE: " + connectors.size());
+        }
+      }
+
+      // Deletes connectors connecting a node to itself
+      if (connectors.size()>1) {
+        //println("INITIAL CONNECTORS SIZE: " + connectors.size());
+        if (connectors.get(connectors.size()-1).curveBegin == connectors.get(connectors.size()-1).curveEnd) {
+          //delete connector from list and physics world:
+          connectors.get(connectors.size()-1).delete();  // not even sure if this is necessary, or if it even works
+          connectors.remove(connectors.size()-1);        // removes connector from arraylist
+
+          //delete connector i from table:
+          connectorData.removeRow(connectors.size()-1);  // should maybe use connectorData.getRowCount() here instead
+
+          println("DELETED A CONNECTOR");
         }
       }
 
@@ -356,7 +371,16 @@ void keyPressed() {
     }
     m.showingMenu = !m.showingMenu;
   }
-  if (((key == BACKSPACE)||(key == DELETE))&&(overNode)) {      // FIX: when all nodes are deleted, can't add new nodes. Why? //<>//
+  if (key == 'a') {
+    for (int i = 0; i <= nodes.size() - 1; i++) {
+      println("\n node " + i + " is connected to nodes:");
+      for (int j = 0; j <= nodes.get(i).connections.size() - 1; j++) {
+        println(nodes.get(i).connections.get(j));
+      }
+    }
+  }
+  if (((key == BACKSPACE)||(key == DELETE))&&(overNode)) {      // FIX: when all nodes are deleted, can't add new nodes. Why?
+    println("_____________________________________________________");
     // Find and delete node:
     if (nodes.size() > 0) {
       for (int i = nodes.size() - 1; i >= 0; i--) {      // for all nodes
@@ -365,27 +389,71 @@ void keyPressed() {
 
           //Delete ALL attached connections:
           for (int c = nodes.get(i).connections.size() - 1; c >= 0; c--) {    // for all connections to this node
-            println("i is " + i);
+
+            //println("i is " + i);
             println("connections size is: " + nodes.get(i).connections.size());
-            println("c is " + c);
-            println("connectors size is: " + connectors.size());
+            //println("c is " + c);
+            println("The " + c + "th element of intlist connections of node " + i + " is " + nodes.get(i).connections.get(c));
+            //println("Initial connectors size is: " + connectors.size());
 
             // for each node connections.get(c) in connections, delete all connectors going from node i to ni:
             for (int j = connectors.size() - 1; j >= 0; j--) {                // for all connectors,
-              println("The startNodeIndex of the " + j + "th connector is " + connectors.get(j).startNodeIndex);
-              println("The endNodeIndex of the " + j + "th connector is " + connectors.get(j).endNodeIndex);
-              if ((connectors.get(j).startNodeIndex == nodes.get(i).connections.get(c))||(connectors.get(j).endNodeIndex == nodes.get(i).connections.get(c))) {  //if the startNodeIndex or endNodeIndex of the jth connector matches the cth element of connections,
-                connectors.get(j).delete(nodes.get(i));                                   // (delete physics particles and springs for this node) i is the node index moused over, nodes.get(i) is the node, connectors.get(j) is the jth connector
+              //println("The startNodeIndex of the " + j + "th connector is " + connectors.get(j).startNodeIndex);
+              //println("The endNodeIndex of the " + j + "th connector is " + connectors.get(j).endNodeIndex);
+              //println("The startNodeIndex of connector " + j + " is " + connectors.get(j).startNodeIndex);
+              if ((connectors.get(j).startNodeIndex == i)||(connectors.get(j).endNodeIndex == i)) {  //if the startNodeIndex or endNodeIndex of the jth connector matches the cth element of connections,
+                println("The startNodeIndex of connector " + j + " is " + connectors.get(j).startNodeIndex);
+                println("**connections(c)** " + nodes.get(i).connections.get(c));
+                println("*startNodeIndex* " + connectors.get(j).startNodeIndex);
+                println("*endNodeIndex* " + connectors.get(j).endNodeIndex);
+
+                connectors.get(j).delete(nodes.get(i), i);                                   // (delete physics particles and springs for this node) i is the node index moused over, nodes.get(i) is the node, connectors.get(j) is the jth connector
                 //connectors.get(nodes.get(i).connections.get(c)).delete(nodes.get(i));   // (delete physics particles and springs for this node)
-                connectors.remove(nodes.get(i).connections.get(c)); // removes the jth connector if its startNode or endNode matches the cth element of connections
+                connectors.remove(j); // removes the jth connector if its startNode or endNode matches the cth element of connections of the ith node
+                //delete connector j from table:
+                connectorData.removeRow(j);
               }
             }
-            nodes.get(i).connections.remove(c); // removes the cth connection of the ith node
-            println("connectors size is: " + connectors.size());    // should be 0 at the end!
+            //nodes.get(i).connections.remove(c); // removes the cth connection of the ith node
+            //println("Final connectors size is: " + connectors.size());    // should be 0 at the end!
           }
           nodes.get(i).findAdjacentNodes(i, connectorData);            // update connections list for this node. This is probably pointless since I'm just removing the node in the next line
           println("Final connections list is: " + nodes.get(i).connections);  // show connections to this node
-          nodes.remove(i);                                             // removes this node
+
+          nodes.remove(i);                                             // removes the moused over node
+
+          // Need to shift down all indexes > the index of the node just deleted:
+          for (int n = nodes.size() - 1; n >= 0; n--) {        //n
+            println("node " + n + " is connected to: ");
+            for (int index = nodes.get(n).connections.size() - 1; index >= 0; index--) {    //index
+              println("node " + nodes.get(n).connections.get(index));                  // + which becomes")
+
+              //remove deleted index from connections
+              if (nodes.get(n).connections.get(index) == i) {
+                nodes.get(n).connections.remove(index); // removes the 'index'th connection of the nth node
+                println("which gets deleted");
+              }
+              //shift all down by 1
+              //println("nodes size is now..." + nodes.size());
+              //println("trying to access index: " + n);
+              //println(nodes.get(n).connections.get(index));
+
+              //try {
+                if ((nodes.get(n).connections.size() != index)&&(nodes.get(n).connections.get(index) > i)) {
+                  nodes.get(n).connections.set(index, nodes.get(n).connections.get(index) - 1);
+                  println("which becomes node " + nodes.get(n).connections.get(index));
+                }
+              //} 
+              //catch (ArrayIndexOutOfBoundsException e) {
+              //  println(e);
+              //  println("connections size is now..." + nodes.get(n).connections.size());
+              //  println("trying to access index: " + index);
+              //}
+              
+              //nodes.remove(i);                                             // removes the moused over node
+            }
+          }
+
           //println("nodes list is: " + nodes);
         }
       }
@@ -420,10 +488,13 @@ void saveData(String filename) {
   saveTable(connectorData, filename + "/connectorData.csv");
 }
 
-void loadData(String filename) {
-
-  // LOAD NODES
+void loadData(String filename) {        // FIX: loading a file when nodes/connectors are already present, results in strange things...
+  
   nodes.clear();             // clear the nodes ArrayList
+  connectors.clear();             // clear the connectors ArrayList
+  physics.clear();
+  
+  // LOAD NODES
   nodeData = loadTable(filename + "/nodeData.csv", "header");
   //connectorData = loadTable(filename + "/connectorData.csv", "header");
 
@@ -451,7 +522,7 @@ void loadData(String filename) {
   println("Loaded " + nodes.size() + " nodes.");
 
   // LOAD CONNECTORS
-  connectors.clear();             // clear the connectors ArrayList
+  //connectors.clear();             // clear the connectors ArrayList
   connectorData = loadTable(filename + "/connectorData.csv", "header");
 
   for (int i = 0; i<connectorData.getRowCount(); i++) {
@@ -465,14 +536,12 @@ void loadData(String filename) {
 
     // Turn each row into a connector
     if (sni != eni) {    // a node can't be connected to itself
-      //if (rowNum.charAt(0) == '#') { // this makes sure blank rows aren't being turned into connectors (checks validity of start node index. EDIT: checks if row number starts with #). EDIT: I can't get this to work...
       connectors.add(new Connector(nodes.get(sni), nodes.get(sni)));    // ADD a new CONNECTOR
       connectors.get(connectors.size()-1).setEndpoint(nodes.get(eni), nodes.get(eni));          // set closest node as end node (for this connection)
       connectors.get(connectors.size()-1).connect(nodes.get(sni), nodes.get(eni));              // connect the nodes together with a verletSpring
     }
   }
   println("Loaded " + connectors.size() + " connectors.");
-  // Could also set the node locations back to what they are in nodeData.csv if I wanted them to be exactly the same as what was saved
 }
 
 void folderSelected(File selection) {

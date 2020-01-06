@@ -72,8 +72,8 @@ class Connector {
     anchor2 = p3;    // where the curve end point should be next
     curveEnd = p4;
   }
-
-  // Connects nodes with connectors from tables
+  
+ //// Connects nodes with connectors from tables
   void connect(Node n1, Node n2) { // add a spring between two connected nodes
     float nodesDist = sqrt(sq(n1.x - n2.x) + sq(n1.y - n2.y));
     node1Pos = new Vec2D(n1.x, n1.y); // node 1 position vector
@@ -84,17 +84,16 @@ class Connector {
     VirtualPos2 = node2Pos.sub(connectorVector.scale(0.01));  // position vector of virtual particle 2
 
     if (curveBegin != curveEnd) {
-      println("NOT THE SAME NODE");
       v1 = new VerletParticle2D(VirtualPos1);
-      a1 = new AttractionBehavior2D(v2, 73, -n1.strength);
-      physics.addBehavior(a1);    // what happens if we don't have attraction behaviors on the virtual particles?
+      a1 = new AttractionBehavior2D(v1, 73, -n1.strength);
+      physics.addBehavior(a1);
       physics.addParticle(v1);
       v2 = new VerletParticle2D(VirtualPos2);
       physics.addParticle(v2);
       a2 = new AttractionBehavior2D(v2, 73, -n1.strength);
       physics.addBehavior(a2);
       s1 = new VerletSpring2D(n1, v1, nodesDist*virtualDistance, springStrength);
-      physics.addSpring(s1);  // mini spring from first node to v1
+      physics.addSpring(s1);  // mini spring from first node
       //println("node 1 is at " + n1.x + ", " + n1.y);      
 
       //println("virtual particle 1 is at: " + VirtualPos1.x + ", " + VirtualPos1.y);
@@ -107,6 +106,41 @@ class Connector {
       //println("node 2 is at " + n2.x + ", " + n2.y);
     }
   }
+
+  //// Connects nodes with connectors from tables
+  //void connect(Node n1, Node n2) { // add a spring between two connected nodes
+  //  float nodesDist = sqrt(sq(n1.x - n2.x) + sq(n1.y - n2.y));
+  //  node1Pos = new Vec2D(n1.x, n1.y); // node 1 position vector
+  //  node2Pos = new Vec2D(n2.x, n2.y); // node 2 position vector
+  //  connectorVector = node2Pos.sub(node1Pos); // hopefully this is pointing from node 1 to node 2
+  //  //Vec2D connectionVector = new Vec2D(n2.x - n1.x, n2.y - n1.y); // points from node 1 to node 2    
+  //  VirtualPos1 = node1Pos.add(connectorVector.scale(0.01));  // position vector of virtual particle 1
+  //  VirtualPos2 = node2Pos.sub(connectorVector.scale(0.01));  // position vector of virtual particle 2
+
+  //  if (curveBegin != curveEnd) {
+  //    //println("NOT THE SAME NODE");
+  //    v1 = new VerletParticle2D(VirtualPos1);
+  //    a1 = new AttractionBehavior2D(v2, 73, -n1.strength);
+  //    physics.addBehavior(a1);    // what happens if we don't have attraction behaviors on the virtual particles?
+  //    physics.addParticle(v1);
+  //    v2 = new VerletParticle2D(VirtualPos2);
+  //    physics.addParticle(v2);
+  //    a2 = new AttractionBehavior2D(v2, 73, -n1.strength);
+  //    physics.addBehavior(a2);
+  //    s1 = new VerletSpring2D(n1, v1, nodesDist*virtualDistance, springStrength);
+  //    physics.addSpring(s1);  // mini spring from first node to v1
+  //    //println("node 1 is at " + n1.x + ", " + n1.y);      
+
+  //    //println("virtual particle 1 is at: " + VirtualPos1.x + ", " + VirtualPos1.y);
+  //    s2 = new VerletSpring2D(v1, v2, nodesDist*0.7, springStrength);
+  //    physics.addSpring(s2);  // main verlet spring
+
+  //    //println("virtual particle 2 is at: " + VirtualPos2.x + ", " + VirtualPos2.y);
+  //    s3 = new VerletSpring2D(v2, n2, nodesDist*virtualDistance, springStrength);
+  //    physics.addSpring(s3);  // mini spring from second node
+  //    //println("node 2 is at " + n2.x + ", " + n2.y);
+  //  }
+  //}
 
   // Connects nodes with connectors by clicking
   // want to add an additional verlet particle connection to each node connection
@@ -130,23 +164,23 @@ class Connector {
       physics.addParticle(v2);
       s1 = new VerletSpring2D(n1, v1, nodesDist*virtualDistance, springStrength);
       physics.addSpring(s1);  // mini spring from first node
-      println("node 1 is at " + n1.x + ", " + n1.y);      
+      //println("node 1 is at " + n1.x + ", " + n1.y);      
 
-      println("virtual particle 1 is at: " + VirtualPos1.x + ", " + VirtualPos1.y);
+      //println("virtual particle 1 is at: " + VirtualPos1.x + ", " + VirtualPos1.y);
       s2 = new VerletSpring2D(v1, v2, nodesDist*0.7 + tempLength, springStrength);
       physics.addSpring(s2);  // main verlet spring
 
-      println("virtual particle 2 is at: " + VirtualPos2.x + ", " + VirtualPos2.y);
+      //println("virtual particle 2 is at: " + VirtualPos2.x + ", " + VirtualPos2.y);
       s3 = new VerletSpring2D(v2, n2, nodesDist*virtualDistance, springStrength);
       physics.addSpring(s3);  // mini spring from second node
-      println("node 2 is at " + n2.x + ", " + n2.y);
+      //println("node 2 is at " + n2.x + ", " + n2.y);
     }
   }
 
   // If deleting a connector by deleting the attached node
-  void delete(Node n) {
-    if ((n == startNode)||(n == endNode)) {  //checks if n is actually a starting or ending node for this connection
-      println("Deleting connection between startNode " + startNode + " and endNode " + endNode);
+  void delete(Node n, int nodeIndex) { //Node n
+    if ((nodeIndex == startNodeIndex)||(nodeIndex == endNodeIndex)) {  //checks if n is actually a starting or ending node for this connection    // for some reason, startNode isn't updating and is always null
+      println("Deleting connection between startNode " + startNodeIndex + " and endNode " + endNodeIndex);
       // deletes all virtual particles in this connection
       if (n != null) {
         physics.removeParticle(n);  // delete node particle
