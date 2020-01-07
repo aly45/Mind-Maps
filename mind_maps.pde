@@ -17,6 +17,8 @@ Node selectedNode, someNode, sn, en; //startNode, endNode;
 int sni, eni;//startNodeIndex, endNodeIndex;
 int maxWidth = 800, maxHeight = 600;
 Menu m;
+//String path = dataPath("captures");    // current path to Data folder
+String[] filenames;
 
 void settings() {
   size(maxWidth, maxHeight);
@@ -389,15 +391,18 @@ void keyPressed() {
     }
     m.showingMenu = !m.showingMenu;
   }
-  if (key == 'a') {
-    for (int i = 0; i <= nodes.size() - 1; i++) {
-      nodes.get(i).findAdjacentNodes(i, connectorData);
-      println("\n node " + i + " is connected to nodes:");
-      for (int j = 0; j <= nodes.get(i).connections.size() - 1; j++) {
-        println(nodes.get(i).connections.get(j));
-      }
-    }
+  if (keyCode == 123) {
+    screenshot();
   }
+  //if (key == 'a') {      // this is for testing purposes
+  //  for (int i = 0; i <= nodes.size() - 1; i++) {
+  //    nodes.get(i).findAdjacentNodes(i, connectorData);
+  //    println("\n node " + i + " is connected to nodes:");
+  //    for (int j = 0; j <= nodes.get(i).connections.size() - 1; j++) {
+  //      println(nodes.get(i).connections.get(j));
+  //    }
+  //  }
+  //}
   if (((key == BACKSPACE)||(key == DELETE))&&(overNode)) {      // FIX: when all nodes are deleted, can't add new nodes. Why?
     println("nodeData has " + nodeData.getRowCount() + " rows");
     println("_____________________________________________________");
@@ -442,17 +447,17 @@ void keyPressed() {
           }
         }
       }
-      
+
       updateConnectedNodes(connectorData);  //updates all startNodes and endNodes
-      
+
       // Remove all connectors with startNode = i OR endNode = i:
       println("The size of connectors arraylist is: " + connectors.size());
       println("REMOVING ALL CONNECTORS FROM CONNECTORS ARRAYLIST WITH startNodeIndex = " + i + " OR endNodeIndex = " + i);
       for (int c = connectors.size() - 1; c >= 0; c--) {    // for all connectors
-          println("Connector " + c + " has startNodeIndex " + connectors.get(c).startNodeIndex + " and endNodeIndex " +  connectors.get(c).endNodeIndex);
+        println("Connector " + c + " has startNodeIndex " + connectors.get(c).startNodeIndex + " and endNodeIndex " +  connectors.get(c).endNodeIndex);
         // Check if startNodeIndex or endNodeIndex = i
         if ((connectors.get(c).startNodeIndex == i)||(connectors.get(c).endNodeIndex == i)) {
-          
+
           //Delete physics for this connector:
           connectors.get(c).delete(c);
           //Remove this connector from connectors list:
@@ -480,7 +485,7 @@ void keyPressed() {
           row.setInt("starting node index", prevInt - 1);
         }
         prevInt = int(row.getString("ending node index"));
-        if (prevInt > i){
+        if (prevInt > i) {
           row.setInt("ending node index", prevInt - 1);
         }
       }
@@ -569,16 +574,41 @@ void folderSelected(File selection) {
     if (match != null) {
       m.filename = match[0];
       println("match found is: " + m.filename);
+      //path = filePath;            // should update path somehow
     }
-    //else {
-    //  m.filename = m.t2.text;
-    //  println("No match found...");
-    //}
+
     m.t2.text = m.filename;        // sets textbox text to file path
     m.t2.k = m.t2.text.length();   // sets number of characters in letters arraylist
     m.t2.letters.clear();
     for (int c = 0; c < m.t2.k; c++) {
       m.t2.letters.append(str(m.t2.text.charAt(c)));      // fills the letters ArrayList of the t2 textbox of menu m
     }
+  }
+}
+
+void screenshot() {
+  String path = sketchPath("Data");    // current path to Data folder
+  println("Saving capture to " + path);
+  String[] filenames = listFileNames(path);
+  int numCaptures = 0;
+  for (int i = 0; i < filenames.length; i++) {
+    println(filenames[i].substring(0, 7));
+    if (filenames[i].substring(0, 5).equals("capture")) {
+      numCaptures++;
+    }
+  }
+  printArray(filenames);
+  println("number of capture files is " + numCaptures);
+  save("capture-" + numCaptures + ".png");    // this actually saves to the sketch folder unless save(path + "capture-" + numCaptures + ".png"); is used instead
+}
+
+// Listing file names (Daniel Shiffman):
+String[] listFileNames(String dir) {
+  File file = new File(dir);
+  if (file.isDirectory()) {
+    String names[] = file.list();
+    return names;
+  } else {
+    return null;
   }
 }

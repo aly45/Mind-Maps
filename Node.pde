@@ -4,6 +4,7 @@ HandyRenderer HR;
 class Node extends VerletParticle2D {
   boolean sketchy = false;
   float fontSize = 20, vertSpace = 20, w = 70, h = 30, maxWidth = 120, radius, strength = 1; //0.2;
+  PFont gulim = createFont("Gulim", fontSize);
   boolean selected = false, highlighted = false, wrapped = false;
   Vec2D displacement, velocity, acceleration; // initialised from draw screen origin (0,0)
   StringList letters = new StringList();
@@ -12,7 +13,6 @@ class Node extends VerletParticle2D {
   IntList connections = new IntList();    // array of node indices that this node is connected to
   String connectionMode;
   AttractionBehavior2D a;
-  //Pfont font;
 
   Node(Vec2D loc, float tempw, float temph, PApplet pa) {
     super(loc);  // loc is an x, y vector (I think)
@@ -49,6 +49,7 @@ class Node extends VerletParticle2D {
     HR.rect(x, y, w, h);      // draw node as a rectangle
     fill(0);
     textAlign(CENTER);
+    textFont(gulim);
     textSize(fontSize);
     textLeading(vertSpace);
     text(words, x, y, w, h);  // display typed text on rectangle location

@@ -12,4 +12,5 @@ A mouse and keyboard are required.
 <li>Start drawing a <b>connector</b>: <tt>RIGHT-CLICK</tt> on any existing node</li>
 <li>Finish drawing a <b>connector</b>: <tt>RIGHT-CLICK</tt> on any existing node. This creates a bunch of springs - what could possibly go wrong?</li>
 <li>Open menu: <tt>ESC</tt></li>
+<li>Capture current frame: <tt>F12</tt></li>
 </ul>
