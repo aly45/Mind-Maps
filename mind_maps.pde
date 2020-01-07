@@ -587,14 +587,16 @@ void folderSelected(File selection) {
 }
 
 void screenshot() {
-  String path = sketchPath("Data");    // current path to Data folder
+  String path = sketchPath();//sketchPath("Data");    // current path to Data folder
   println("Saving capture to " + path);
   String[] filenames = listFileNames(path);
   int numCaptures = 0;
   for (int i = 0; i < filenames.length; i++) {
-    println(filenames[i].substring(0, 7));
-    if (filenames[i].substring(0, 5).equals("capture")) {
-      numCaptures++;
+    if (filenames[i].length() > 7) {
+      println(filenames[i].substring(0, 7));
+      if (filenames[i].substring(0, 7).equals("capture")) {
+        numCaptures++;
+      }
     }
   }
   printArray(filenames);
