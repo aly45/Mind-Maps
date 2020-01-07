@@ -10,7 +10,7 @@ ArrayList<Node> nodes;  //array list of nodes
 ArrayList<Connector> connectors;  //array list of connectors (arrows/lines)
 Vec2D mouse;//, lastnode, draggedline;//lastline;
 float rectW = 70, rectH = 30;
-float xAnchor, yAnchor;
+float xAnchor, yAnchor, prevX, prevY;
 String MODE = "PLACING_NODES"; // "NODE_SELECTED";
 boolean overNode = false, nodeSelected = false, nodeMoved = false, drawing = false, sketchy = false, textLoaded = false, dragging = false;
 Node selectedNode, someNode, sn, en; //startNode, endNode;
@@ -71,6 +71,8 @@ void draw() {
     }
 
     mouse = new Vec2D(mouseX, mouseY);
+    prevX = pmouseX;
+    prevY = pmouseY;
 
     if (drawing) {
       stroke(0);
@@ -215,50 +217,53 @@ void mouseClicked() {
         m.backButton.isOver = false;
       }
     }
-  } else {
-    if (mouseButton == LEFT) {
-      //println(nodes.size());
-      if (!overNode) {
-        if (nodeSelected) {    // don't want to add nodes if a node is selected. Want to deselect current node.
-          nodeSelected = false;
-          for (Node n : nodes) {
-            //MODE = "NODE_DESELECTED";
-            n.selected = false; //true;
-            nodeSelected = nodeSelected||(n.selected);
-          }
-        } else { // may not need an else
-          //MODE = "PLACING_NODES";
-          nodeSelected = false;
-          Node newNode = new Node(mouse, rectW, rectH, this);    // well hopefully this works!
-          nodes.add(newNode);    // ADD a new NODE
+  } 
+  //else {
+  //  leftMouseFunction();
+  //}
+}
+void leftMouseFunction() {
+  if (!overNode) {
+    if (nodeSelected) {    // don't want to add nodes if a node is selected. Want to deselect current node.
+      nodeSelected = false;
+      for (Node n : nodes) {
+        n.selected = false; //true;
+        nodeSelected = nodeSelected||(n.selected);
+      }
+    } else {// May not need an else
+      //MODE = "PLACING_NODES";
+      nodeSelected = true;      //changed to true
+      Node newNode = new Node(mouse, rectW, rectH, this);
+      nodes.add(newNode);    // ADD a new NODE
+      nodes.get(nodes.size()-1).selected = true;
 
-          // Add new row to nodeData
-          TableRow row = nodeData.addRow();
-          row.setFloat("x", newNode.x);
-          row.setFloat("y", newNode.y);
-          row.setFloat("w", newNode.w);
-          row.setFloat("h", newNode.h);
-          row.setString("words", newNode.words);    // maybe just using StringList 'letters' as is would work too?
-        }
+      // Add new row to nodeData
+      TableRow row = nodeData.addRow();
+      row.setFloat("x", newNode.x);
+      row.setFloat("y", newNode.y);
+      row.setFloat("w", newNode.w);
+      row.setFloat("h", newNode.h);
+      row.setString("words", newNode.words);    // maybe just using StringList 'letters' as is would work too?
+    }
+  } else {  //if over a node
+    nodeSelected = false;
+    for (Node n : nodes) {
+      if (n.mouseOver(n.x, n.y)) {    // mouse is L-clicked on a node
+        //MODE = "NODE_SELECTED";
+        n.selected = !n.selected; //true;
+        nodeSelected = nodeSelected||(n.selected);
+        selectedNode = n;
       } else {
-        nodeSelected = false;
-        for (Node n : nodes) {
-          if (n.mouseOver(n.x, n.y)) {    // mouse is L-clicked on a node
-            //MODE = "NODE_SELECTED";
-            n.selected = !n.selected; //true;
-            nodeSelected = nodeSelected||(n.selected);
-            selectedNode = n;
-          } else {
-            n.selected = false;
-          }
-        }
+        n.selected = false;
       }
     }
   }
 }
 
 void mouseReleased() {
-  if ((mouseButton == RIGHT)&&(nodes.size()>0)&&(!m.showingMenu)&&(overNode)) {
+  if ((mouseButton == LEFT)&&((abs(mouseX - prevX) < 10)&&(abs(mouseY - prevY) < 10))) {    // 10 - the size of this number is proportional to how much speed the mouse can have while clicking, to create a node
+    leftMouseFunction();
+  } else if ((mouseButton == RIGHT)&&(nodes.size()>0)&&(!m.showingMenu)&&(overNode)) {
     xAnchor = mouseX;
     yAnchor = mouseY;
 

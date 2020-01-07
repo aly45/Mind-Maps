@@ -6,7 +6,7 @@ class Connector {
   int startNodeIndex, endNodeIndex, n;
   //boolean drawing = false;    // is the connector currently being drawn?
   float dist;
-  float springLength = 130;
+  float springLength = 200;
   float springStrength = 0.0015;//0.002;
   float virtualDistance = 0.0001; //0.01 changing this won't change much because of the repulsion forces on the virtual particles (?)
   //float strength = 2;
@@ -97,7 +97,7 @@ class Connector {
       //println("node 1 is at " + n1.x + ", " + n1.y);      
 
       //println("virtual particle 1 is at: " + VirtualPos1.x + ", " + VirtualPos1.y);
-      s2 = new VerletSpring2D(v1, v2, nodesDist*0.7, springStrength);
+      s2 = new VerletSpring2D(v1, v2, nodesDist, springStrength);
       physics.addSpring(s2);  // main verlet spring
 
       //println("virtual particle 2 is at: " + VirtualPos2.x + ", " + VirtualPos2.y);
@@ -132,7 +132,7 @@ class Connector {
       //println("node 1 is at " + n1.x + ", " + n1.y);      
 
       //println("virtual particle 1 is at: " + VirtualPos1.x + ", " + VirtualPos1.y);
-      s2 = new VerletSpring2D(v1, v2, nodesDist*0.7 + tempLength, springStrength);
+      s2 = new VerletSpring2D(v1, v2, nodesDist + tempLength, springStrength);
       physics.addSpring(s2);  // main verlet spring
 
       //println("virtual particle 2 is at: " + VirtualPos2.x + ", " + VirtualPos2.y);
