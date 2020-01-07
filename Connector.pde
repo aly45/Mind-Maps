@@ -168,7 +168,8 @@ class Connector {
   }
 
   // If deleting a connector by first selecting the connector:
-  void delete() {    // Node start, Node end
+  void delete(int i) {    // Node start, Node end
+    println("Deleting connector " + i + " physics...");
     // deletes all virtual particles in this connection
     //physics.removeParticle(start);  // don't want to remove starting and ending nodes!
     

@@ -148,7 +148,7 @@ class Node extends VerletParticle2D {
   }
 
   void delete(int i) {
-    println("Deleting node " + i);
+    println("Deleting node " + i + " physics...");
     //if (this != null) {
     physics.removeBehavior(this.a); // delete node particle attraction behaviour
     physics.removeParticle(this);   // delete node particle
