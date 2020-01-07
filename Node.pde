@@ -120,7 +120,7 @@ class Node extends VerletParticle2D {
     //println(t.getRowCount() + " rows");
     for (TableRow row : t.findRows(str(i), "ending node index")) {    // finds rows with starting node index i
       //println(connectors.size());
-      
+
       connectors.get(rowNum).startNodeIndex = int(row.getString("starting node index"));
       connectors.get(rowNum).endNodeIndex = int(row.getString("ending node index"));
       if ((int(row.getString("starting node index")) != int(row.getString("ending node index")))&&(!connections.hasValue(int(row.getString("starting node index"))))) {
@@ -145,5 +145,13 @@ class Node extends VerletParticle2D {
       highlighted = false;
       return false;
     }
+  }
+
+  void delete(int i) {
+    println("Deleting node " + i);
+    //if (this != null) {
+    physics.removeBehavior(this.a); // delete node particle attraction behaviour
+    physics.removeParticle(this);   // delete node particle
+    //}
   }
 }

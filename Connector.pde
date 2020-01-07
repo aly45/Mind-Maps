@@ -171,13 +171,16 @@ class Connector {
   void delete() {    // Node start, Node end
     // deletes all virtual particles in this connection
     //physics.removeParticle(start);  // don't want to remove starting and ending nodes!
-    physics.removeBehavior(a1);
-    physics.removeParticle(v1);
-    physics.removeBehavior(a2);
-    physics.removeParticle(v2);
+    
     physics.removeSpring(s1);  // remove mini spring from first node to v1
     physics.removeSpring(s2);  // remove spring from v1 to v2
     physics.removeSpring(s3);  // remove mini spring from v2 to last node
+
+    physics.removeBehavior(a1);
+    physics.removeParticle(v1);
+    
+    physics.removeBehavior(a2);
+    physics.removeParticle(v2);
   }
 
   //boolean mouseOver() {    // can use startNodeIndex and endNodeIndex
