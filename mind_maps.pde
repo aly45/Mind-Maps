@@ -12,11 +12,12 @@ Vec2D mouse;//, lastnode, draggedline;//lastline;
 float rectW = 70, rectH = 30;
 float xAnchor, yAnchor, prevX, prevY;
 String MODE = "PLACING_NODES"; // "NODE_SELECTED";
-boolean overNode = false, nodeSelected = false, nodeMoved = false, drawing = false, sketchy = false, textLoaded = false, dragging = false;
+boolean overNode = false, nodeSelected = false, nodeMoved = false, drawing = false, sketchy = false, textLoaded = false, dragging = false, hasTyped = false;
 Node selectedNode, someNode, sn, en; //startNode, endNode;
 int sni, eni;//startNodeIndex, endNodeIndex;
 int maxWidth = 800, maxHeight = 600;
 Menu m;
+color connectorColour = color(0,255,0);
 //String path = dataPath("captures");    // current path to Data folder
 String[] filenames;
 StringDict alphabet;
@@ -134,7 +135,7 @@ void draw() {
     prevY = pmouseY;
 
     if (drawing) {
-      stroke(0);
+      stroke(connectorColour);
       line(xAnchor, yAnchor, mouseX, mouseY);
     }
 
@@ -157,9 +158,6 @@ void draw() {
   }
 
   for (Connector c : connectors) {  // for every connector in the arrayList connectors,   
-    //if (c.mouseOver()){
-    //  println("over a connector!");
-    //}
     c.mouseOver();
     c.display();         // display the connector
   }
@@ -171,9 +169,6 @@ void draw() {
   // updates and displays menu:
   m.move(width, height);
   m.display();
-
-  //println("YES is " + m.yesButton.isOver);    // (prints for debugging)
-  //println("NO is " + m.noButton.isOver);
 }
 
 void mouseClicked() {
@@ -304,11 +299,13 @@ void leftMouseFunction() {
       }
     } else {// May not need an else
       //MODE = "PLACING_NODES";
+      //if (nodes.size() == 0) {
+      //  keyCode = 8;
+      //}
       nodeSelected = true;      //changed to true
       Node newNode = new Node(mouse, rectW, rectH, this);
       nodes.add(newNode);    // ADD a new NODE
       nodes.get(nodes.size()-1).selected = true;
-      nodes.get(nodes.size()-1).words = "";
 
       // Add new row to nodeData
       TableRow row = nodeData.addRow();
@@ -411,7 +408,7 @@ void mouseReleased() {
           connectors.remove(connectors.size()-1);        // removes connector from arraylist
 
           //delete connector i from table:
-          connectorData.removeRow(connectorData.getRowCount() - 1);  // should maybe use connectorData.getRowCount() here instead
+          connectorData.removeRow(connectorData.getRowCount() - 1);
 
           println("DELETED A CONNECTOR");
         }
@@ -438,13 +435,14 @@ void updateConnectedNodes(Table t) {  //input connectorData table
   //println("*** number of rows in connectorData is____ " + t.getRowCount());
   for (TableRow row : t.rows()) {          // for all rows in t
     //println("***table row " + rowNum + " is " + t.getRow(rowNum));    
-    connectors.get(rowNum).startNodeIndex = int(row.getString("starting node index"));      // does .get().startNodeIndex actually set startNodeIndex?
+    connectors.get(rowNum).startNodeIndex = int(row.getString("starting node index"));
     connectors.get(rowNum).endNodeIndex = int(row.getString("ending node index"));
     rowNum++;
   }
 }
 
 void keyTyped() {
+  hasTyped = true;
   // type in menu text boxes
   if (m.showingMenu) {
     if (m.menuMode == "SAVE") {
@@ -457,9 +455,6 @@ void keyTyped() {
     textSize(20);
     for (int i = 0; i < nodes.size(); i++) {    // goes through all the nodes
       nodes.get(i).addText(nodes.get(i).selected);     // add text to selected node
-      //if (nodes.get(i).selected){
-      //  println(nodes.get(i).words);
-      //}
     }
   }
 }
