@@ -11,13 +11,13 @@ ArrayList<Connector> connectors;  //array list of connectors (arrows/lines)
 Vec2D mouse;//, lastnode, draggedline;//lastline;
 float rectW = 70, rectH = 30;
 float xAnchor, yAnchor, prevX, prevY;
-String MODE = "PLACING_NODES"; // "NODE_SELECTED";
-boolean overNode = false, nodeSelected = false, nodeMoved = false, drawing = false, sketchy = false, textLoaded = false, dragging = false, hasTyped = false;
+String MODE = "PLACING_NODES", title = "Mind Maps";
+boolean overNode = false, nodeSelected = false, nodeMoved = false, drawing = false, sketchy = false, textLoaded = false, dragging = false, hasTyped = false, darkMode = true;
 Node selectedNode, someNode, sn, en; //startNode, endNode;
 int sni, eni;//startNodeIndex, endNodeIndex;
 int maxWidth = 800, maxHeight = 600;
 Menu m;
-color connectorColour = color(0,255,0);
+color connectorColour = color(0, 255, 0);
 //String path = dataPath("captures");    // current path to Data folder
 String[] filenames;
 StringDict alphabet;
@@ -28,7 +28,7 @@ void settings() {
 }
 
 void setup() {
-  surface.setTitle("Mind Maps");  // add file name to this, or "New mind map" if no file selected
+  surface.setTitle(title);  // add file name to this, or "New mind map" if no file selected
   surface.setResizable(true);
   //surface.setLocation(100, 100); // location on device screen
 
@@ -216,6 +216,9 @@ void mouseClicked() {
         m.showingMenu = false;
         m.menuMode = "MAIN";
         m.yesButton.isOver = false;
+        if (m.filename.length() > 0) {
+          title = m.filename;
+        }
       }
       if (m.noButton.isOver) {
         m.filename = m.t1.text;
@@ -236,6 +239,9 @@ void mouseClicked() {
       }
       if (m.yesButton.isOver) {
         m.filename = m.t2.text;
+        if (m.filename.length() > 0) {
+          title = m.filename;
+        }
         // LOAD FILE "filename"
         try {
           loadData(m.filename);
@@ -266,12 +272,19 @@ void mouseClicked() {
       }
     } else if (m.menuMode=="NEW") {      // NEW MENU CONTROLS
       if (m.yesButton.isOver) {
-        m.filename = m.t2.text;
+        //m.filename = m.t2.text;
         // reset current filename to ""
+        m.filename = "";
         // reset current work  
+        nodes.clear();             // clear the nodes ArrayList
+        connectors.clear();             // clear the connectors ArrayList
+        physics.clear();
+        nodeData.clearRows();                      // resets table nodeData
+        connectorData.clearRows();                 // resets table connectorData
         m.menuMode = "MAIN";
         m.showingMenu = false;
         m.yesButton.isOver = false;
+        title = "Mind Maps";
       }
       if (m.noButton.isOver) {
         m.filename = m.t2.text;
@@ -290,6 +303,7 @@ void mouseClicked() {
   //}
 }
 void leftMouseFunction() {
+  println(overNode);
   if (!overNode) {
     if (nodeSelected) {    // don't want to add nodes if a node is selected. Want to deselect current node.
       nodeSelected = false;
@@ -299,9 +313,6 @@ void leftMouseFunction() {
       }
     } else {// May not need an else
       //MODE = "PLACING_NODES";
-      //if (nodes.size() == 0) {
-      //  keyCode = 8;
-      //}
       nodeSelected = true;      //changed to true
       Node newNode = new Node(mouse, rectW, rectH, this);
       nodes.add(newNode);    // ADD a new NODE
@@ -565,6 +576,9 @@ void keyPressed() {
           row.setInt("ending node index", prevInt - 1);
         }
       }
+    }
+    if (nodes.size() == 0) {  // can't be over a node when there are none.
+      overNode = false;
     }
   }
 }

@@ -56,7 +56,7 @@ class Node extends VerletParticle2D {
     textLeading(vertSpace);
     if ((hasTyped) && (words.length() > 0)) {
       text(words, x, y, w, h);  // display typed text on rectangle location
-      println(words);
+      //println(words);
     }
   }
 

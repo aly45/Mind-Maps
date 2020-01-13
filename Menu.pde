@@ -126,7 +126,7 @@ class Menu {
     newButton.move(w/2 - menuWidth/2 + 3*(menuWidth/divisions) + 20, h/2);
     yesButton.move(w/2 - menuWidth/5, h/2 + 25);
     noButton.move(w/2 + menuWidth/5, h/2 + 25);
-    backButton.move(backButtonX, backButtonY);
+    backButton.move(w/2, h/2 + 30);
     folderButton.move(w/2 - menuWidth*0.3 + 5, h/2 - 25);
 
     t1.move(w/2, h/2);
