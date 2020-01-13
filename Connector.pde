@@ -1,7 +1,6 @@
 class Connector {
   Vec2D curveBegin, anchor1, anchor2, curveEnd, node1Pos, node2Pos, connectorVector, VirtualPos1, VirtualPos2;
-  //int connectedFrom; // node number in nodes ArrayList
-  //int connectedTo;   // node number in nodes ArrayList
+  color connectorColour = color(0,255,0);
   Node startNode, endNode, closestNode;
   int startNodeIndex, endNodeIndex, n;
   //boolean drawing = false;    // is the connector currently being drawn?
@@ -25,7 +24,7 @@ class Connector {
     noFill();
     if ((curveBegin != null)&&(curveEnd != null)) {  // checks if curveBegin and curveEnd are actually assigned.
       if (curveBegin != curveEnd) {
-        stroke(0);
+        stroke(connectorColour);
         bezier(curveBegin.x, curveBegin.y, v1.x, v1.y, v2.x, v2.y, curveEnd.x, curveEnd.y);
         //stroke(255);
         //ellipse(v1.x, v1.y, 5, 5);

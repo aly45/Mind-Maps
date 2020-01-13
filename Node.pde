@@ -2,6 +2,7 @@ import org.gicentre.handy.*;
 HandyRenderer HR;
 
 class Node extends VerletParticle2D {
+  color highlightColour = color(255, 255, 0);
   boolean sketchy = false;
   float fontSize = 20, vertSpace = 20, w = 70, h = 30, maxWidth = 120, radius, strength = 1; //0.2;
   PFont gulim = createFont("Gulim", fontSize);
@@ -12,6 +13,7 @@ class Node extends VerletParticle2D {
   int k = 0;
   IntList connections = new IntList();    // array of node indices that this node is connected to
   String connectionMode;
+  //boolean searchingGreek = false;
   AttractionBehavior2D a;
 
   Node(Vec2D loc, float tempw, float temph, PApplet pa) {
@@ -42,17 +44,20 @@ class Node extends VerletParticle2D {
     HR.setIsHandy(sketchy);   // if node selected, make rectangle sketchy
     if (highlighted) {
       strokeWeight(2);
-      stroke(0);
+      stroke(highlightColour);
     } else {
       noStroke();
     }
     HR.rect(x, y, w, h);      // draw node as a rectangle
     fill(0);
     textAlign(CENTER);
-    textFont(gulim);
+    //textFont(gulim);
     textSize(fontSize);
     textLeading(vertSpace);
-    text(words, x, y, w, h);  // display typed text on rectangle location
+    if (words.length() > 0) {
+      text(words, x, y, w, h);  // display typed text on rectangle location
+      println(words);
+    }
   }
 
   void sketch(boolean selected) {
@@ -77,8 +82,32 @@ class Node extends VerletParticle2D {
     }
 
     words = "";
+
+    //int dot = 0;
+    //for (int mark=0; mark < letters.size(); mark++) {  // build up words String out of letters StringList
+    //  if (words.substring(mark, mark+1).equals("\\")) {
+    //    dot = mark;
+    //  }
+    //  if (alphabet.hasKey(words.substring(dot, mark))) {    // if the string words contains a \ character, check for Greek letter key
+    //    String s = alphabet.get(words.substring(dot, mark));
+    //    if ((words.substring(dot, mark).equals("Sigma")||words.substring(dot, mark).equals("sigma")) && words.substring(mark + 1).equals("f")) {
+    //      s = alphabet.get(words.substring(dot, mark + 1));
+    //    } else {
+    //      s = alphabet.get(words.substring(dot, mark + 1));
+    //    }
+    //    words += s;                  // adds Greek letter code
+    //    dot = mark;
+    //  } else {
+    //    words += letters.get(mark);  // adds letter as normal
+    //    println(words);
+    //  }
+    //}
+    //println(words);
+
     for (int i=0; i<letters.size(); i+=1) {  // build up words String out of letters StringList
       words += letters.get(i);
+      String g = convertGreek(words);
+      words = g;
     }
 
     if (letters.size()>0) {
@@ -102,6 +131,62 @@ class Node extends VerletParticle2D {
       w = 70;
       h = 30;
     }
+  }
+
+  String convertGreek(String t) {
+    String g = "";   // new string with converted Greek letters
+    String shortcut = ""; // Greek letter shortcut
+    String gl = "";  // Greek letter key
+    int dot = 0;   // start point
+    int l = 0;
+    boolean searchingGreek = false, waiting = false;
+
+    //if (t.length() > 5) {
+    for (int mark=0; mark < t.length(); mark++) {    // go through string t
+      if (t.substring(mark, mark+1).equals("\\")) {  // if the string t contains a \ character, check for Greek letter key . Need to add 4 to both because \ is actually added as "null\" to the string. ?
+        dot = mark;                                  // set starting check point dot
+        gl = "";                                     // refreshes greek letter
+        searchingGreek = true;
+      }
+      if (!waiting) {
+        if ((searchingGreek) && (alphabet.hasKey(t.substring(dot, mark)))) {    // if the alphabet contains the substring key
+
+          // Ensures sigmaf isn't ignored:
+          if (t.substring(dot, mark).equals("\\Sigma")||t.substring(dot, mark).equals("\\sigma")) {
+            waiting = true;
+            l = mark;
+            
+          } else { 
+            shortcut = t.substring(dot, mark);
+            gl = alphabet.get(shortcut);      // stores the Greek letter shortcut in gl
+
+            g = g.substring(0, g.length() - shortcut.length());  // removes the typed escaped Greek shortcut
+            g += gl;                  // adds Greek letter code to string with Greek letters
+            dot = mark;
+            //gl = "";                                     // refreshes greek letter
+            searchingGreek = false;                         // no longer searching
+          }
+        } else {
+          g += t.charAt(mark);  // adds letter as normal
+        }
+      } else {
+        if (t.substring(dot, mark + 1).equals("f")) {
+          shortcut = t.substring(dot, mark + 1);
+          gl = alphabet.get(shortcut);  
+          g = g.substring(0, g.length() - shortcut.length());  // removes the typed escaped Greek shortcut
+          g += gl;                  // adds Greek letter code to string with Greek letters
+          dot = mark;
+          //gl = "";                                     // refreshes greek letter
+          searchingGreek = false;                         // no longer searching
+        }
+        if (mark > l) {
+          waiting = false;
+        }
+      }
+      println(mark);
+    }
+    println(l);
+    return g;
   }
 
   void findAdjacentNodes(int i, Table t) {  //input current node index, connectorData table

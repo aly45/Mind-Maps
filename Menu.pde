@@ -4,16 +4,18 @@ class Menu {
   float buttonWidth = 80, buttonHeight = 40, xSize = 18;
   int w = 800, h = 600, dispTime = 60; // dispTime is number of frames for displaying a message
   color yellow = color(237, 226, 33), green = color(77, 168, 70), aqua = color(4, 211, 156), blue = color(4, 107, 211), purple = color(98, 3, 193), magenta = color(155, 3, 160), red_pink = color(160, 3, 102), orange = color(221, 118, 33);
-  float size1 = 32.3, size2 = 23.2;
+  float size1 = 32.3, size2 = 23.2, size3 = 18;
   String menuMode = "MAIN", filename, previousMode = "";
   boolean showingMenu = false;
+  float backButtonX = w/2, backButtonY = h/2 + 30;
 
-  Button X, saveButton, loadButton, newButton, yesButton, noButton, backButton, folderButton;
+  Button X, Q, saveButton, loadButton, newButton, yesButton, noButton, backButton, folderButton;
 
   TextBox t1, t2;
 
   Menu() {
     X = new XButton("X", w/2 + menuWidth/2 - xSize/2 - 0.5, h/2 - menuHeight/2 + xSize/2 + 1, xSize, xSize, green, color(255));
+    Q = new Button("?", w/2 - menuWidth/2 + xSize/2 + 0.5, h/2 - menuHeight/2 + xSize/2 + 0.5, xSize, xSize, yellow, size3);
     saveButton = new Button("Save", w/2 - menuWidth/2 + (menuWidth/divisions) - 20, h/2, buttonWidth, buttonHeight, green, size1);
     loadButton = new Button("Load", w/2 - menuWidth/2 + 2*(menuWidth/divisions), h/2, buttonWidth, buttonHeight, blue, size1);
     newButton = new Button("New", w/2 - menuWidth/2 + 3*(menuWidth/divisions) + 20, h/2, buttonWidth, buttonHeight, orange, size1);
@@ -33,8 +35,10 @@ class Menu {
       strokeWeight(2);
       fill(0, 230);
       rect(w/2, h/2, menuWidth, menuHeight);
-      X.display(160);
       X.mouseOver();
+      X.display(160);
+      Q.mouseOver();
+      Q.display(160);
 
       switch(menuMode) {
       case "MAIN":
@@ -44,6 +48,14 @@ class Menu {
         loadButton.mouseOver();
         newButton.display(160);
         newButton.mouseOver();
+        break;
+      case "HELP":
+        fill(green);
+        textAlign(LEFT);
+        textSize(14);
+        text("Create node: LEFT-CLICK \nStop editing node: LEFT-CLICK \nConnect nodes: RIGHT-CLICK on one node, then another \nDelete node: DELETE/BACKSPACE while mouse is over a node \nCapture screen: F12", w/2 - 0.87*t1.w, h/2 - 1.97*t1.fontSize);
+        menuHeight = 150;
+        menuWidth = 450;
         break;
       case "SAVE":
         fill(green);
@@ -108,12 +120,13 @@ class Menu {
     w = tw;
     h = th;
     X.move(w/2 + menuWidth/2 - xSize/2 - 0.5, h/2 - menuHeight/2 + xSize/2 + 1);
+    Q.move(w/2 - menuWidth/2 + xSize/2 + 0.5, h/2 - menuHeight/2 + xSize/2 + 0.5);
     saveButton.move(w/2 - menuWidth/2 + (menuWidth/divisions) - 20, h/2);
     loadButton.move(w/2 - menuWidth/2 + 2*(menuWidth/divisions), h/2);
     newButton.move(w/2 - menuWidth/2 + 3*(menuWidth/divisions) + 20, h/2);
     yesButton.move(w/2 - menuWidth/5, h/2 + 25);
     noButton.move(w/2 + menuWidth/5, h/2 + 25);
-    backButton.move(w/2, h/2 + 30);
+    backButton.move(backButtonX, backButtonY);
     folderButton.move(w/2 - menuWidth*0.3 + 5, h/2 - 25);
 
     t1.move(w/2, h/2);

@@ -4,8 +4,9 @@ class TextBox {
   StringList letters = new StringList();
   String text = "";
   int k = 0;
+  StringDict alphabet;
 
-// TODO: should shift text left by last character width whenever total text width exceeds text box size
+  // TODO: should shift text left by last character width whenever total text width exceeds text box size
   TextBox(float xPos, float yPos, float boxWidth, float boxHeight) {
     x = xPos;
     y = yPos;
@@ -52,13 +53,15 @@ class TextBox {
       }
 
       text = "";
-      for (int i=0; i<letters.size(); i+=1) {  // build up words String out of letters StringList
-        text += letters.get(i);
+
+      for (int mark=0; mark < letters.size(); mark++) {  // build up words String out of letters StringList
+          text += letters.get(mark);  // adds letter as normal
+        }
       }
     }
-  }
   
-  void move(float tempX, float tempY){
+
+  void move(float tempX, float tempY) {
     x = tempX;
     y = tempY;
   }

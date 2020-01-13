@@ -19,6 +19,7 @@ int maxWidth = 800, maxHeight = 600;
 Menu m;
 //String path = dataPath("captures");    // current path to Data folder
 String[] filenames;
+StringDict alphabet;
 
 void settings() {
   size(maxWidth, maxHeight);
@@ -48,10 +49,68 @@ void setup() {
   connectorData.addColumn("starting node index");    // adds columns to table connectorData
   connectorData.addColumn("ending node index");
   connectorData.clearRows();                           // resets table
+
+  // Greek dictionary conversion:
+  alphabet = new StringDict();
+
+  //upper case:
+  alphabet.set("\\Alpha", "\u0391");
+  alphabet.set("\\Beta", "\u0392");
+  alphabet.set("\\Gamma", "\u0393");
+  alphabet.set("\\Delta", "\u0394");
+  alphabet.set("\\Epsilon", "\u0395");
+  alphabet.set("\\Zeta", "\u0396");
+  alphabet.set("\\Eta", "\u0397");
+  alphabet.set("\\Theta", "\u0398");
+  alphabet.set("\\Iota", "\u0399");
+  alphabet.set("\\Kappa", "\u039A");
+  alphabet.set("\\Lambda", "\u039B");
+  alphabet.set("\\Mu", "\u039C");
+  alphabet.set("\\Nu", "\u039D");
+  alphabet.set("\\Xi", "\u039E");
+  alphabet.set("\\Omicron", "\u039F");
+  alphabet.set("\\Pi", "\u03A0");
+  alphabet.set("\\Rho", "\u03A1");
+  alphabet.set("\\Sigmaf", "\u03A2");
+  alphabet.set("\\Sigma", "\u03A3");
+  alphabet.set("\\Tau", "\u03A4");
+  alphabet.set("\\Upsilon", "\u03A5");
+  alphabet.set("\\Phi", "\u03A6");
+  alphabet.set("\\Chi", "\u03A7");
+  alphabet.set("\\Psi", "\u03A8");
+  alphabet.set("\\Omega", "\u03A9");
+
+  //lower case:
+  alphabet.set("\\alpha", "\u03B1");
+  alphabet.set("\\beta", "\u03B2");
+  alphabet.set("\\gamma", "\u03B3");
+  alphabet.set("\\delta", "\u03B4");
+  alphabet.set("\\epsilon", "\u03B5");
+  alphabet.set("\\zeta", "\u03B6");
+  alphabet.set("\\eta", "\u03B7");
+  alphabet.set("\\theta", "\u03B8");
+  alphabet.set("\\iota", "\u03B9");
+  alphabet.set("\\kappa", "\u03BA");
+  alphabet.set("\\lambda", "\u03BB");
+  alphabet.set("\\mu", "\u03BC");
+  alphabet.set("\\nu", "\u03BD");
+  alphabet.set("\\xi", "\u03BE");
+  alphabet.set("\\omicron", "\u03BF");
+  alphabet.set("\\pi", "\u03C0");
+  alphabet.set("\\rho", "\u03C1");
+  alphabet.set("\\sigmaf", "\u03C2");
+  alphabet.set("\\sigma", "\u03C3");
+  alphabet.set("\\tau", "\u03C4");
+  alphabet.set("\\upsilon", "\u03C5");
+  alphabet.set("\\phi", "\u03C6");
+  alphabet.set("\\chi", "\u03C7");
+  alphabet.set("\\psi", "\u03C8");
+  alphabet.set("\\omega", "\u03C9");
 }
 
+
 void draw() {
-  background(150); //10, 17, 60);
+  background(0); //background(150); //10, 17, 60);
   if (width > maxWidth) {
     maxWidth = width;
   }
@@ -121,9 +180,22 @@ void mouseClicked() {
   //if ((mouseX==pmouseX)&&(mouseY==pmouseY)) { // stay still!  -- only need this if using mouseRelased() ?
 
   if (m.showingMenu) {
-    if (m.X.isOver) {
+    if (m.X.isOver) {                     // CLOSE MENU
       m.showingMenu = false;
       m.menuMode = "MAIN";
+    } else if (m.Q.isOver) {              // SHOW HELP
+      if (m.menuMode != "HELP") {
+        m.menuMode = "HELP";
+        //if (m.backButton.isOver) {
+        //  println("entering back if statement");
+        //  m.menuMode = "MAIN";
+        //  m.backButton.isOver = false;
+        //}
+      } else {
+        m.menuMode = "MAIN";
+        m.menuWidth = 300;
+        m.menuHeight = 100;
+      }
     } else if (m.menuMode=="MAIN") {      // MAIN MENU BUTTON CONTROLS
       if (m.saveButton.isOver) {
         m.menuMode = "SAVE";
@@ -236,6 +308,7 @@ void leftMouseFunction() {
       Node newNode = new Node(mouse, rectW, rectH, this);
       nodes.add(newNode);    // ADD a new NODE
       nodes.get(nodes.size()-1).selected = true;
+      nodes.get(nodes.size()-1).words = "";
 
       // Add new row to nodeData
       TableRow row = nodeData.addRow();
@@ -384,6 +457,9 @@ void keyTyped() {
     textSize(20);
     for (int i = 0; i < nodes.size(); i++) {    // goes through all the nodes
       nodes.get(i).addText(nodes.get(i).selected);     // add text to selected node
+      //if (nodes.get(i).selected){
+      //  println(nodes.get(i).words);
+      //}
     }
   }
 }
